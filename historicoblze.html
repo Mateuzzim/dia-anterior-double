@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico Double</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 15px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #f8fafc;
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(90deg, #60a5fa, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .result-item {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+        
+        .result-item:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .result-number {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+        
+        .result-time {
+            font-size: 0.6rem;
+            opacity: 0.8;
+        }
+        
+        .result-red {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            border-color: #f87171;
+        }
+        
+        .result-black {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            color: white;
+            border-color: #4b5563;
+        }
+        
+        .result-white {
+            background: linear-gradient(135deg, #ffffff, #e2e8f0);
+            color: #1f2937;
+            border-color: #cbd5e1;
+        }
+        
+        .load-more-container {
+            text-align: center;
+            margin-top: 30px;
+            padding-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #f87171;
+            background: rgba(220, 38, 38, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .date-separator {
+            grid-column: 1 / -1;
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .history-grid {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="results" class="history-grid">
+            <!-- Resultados serão inseridos aqui dinamicamente -->
+        </div>
+        
+        <div class="load-more-container">
+            <button id="loadMoreBtn" class="btn" style="display: none;">Exibir Mais</button>
+        </div>
+    </div>
+
+    <script>
+        // Configurações
+        const API_BASE = 'https://blaze.bet.br/api/singleplayer-originals/originals/roulette_games/recent/history/1';
+        let currentPage = 1;
+        let currentStartDate = null;
+        let currentEndDate = null;
+        let allRecords = [];
+        let lastRenderedDateString = null;
+
+        // Elementos DOM
+        const resultsContainer = document.getElementById('results');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+        // Inicializar datas (últimos 7 dias)
+        function initializeDates() {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - 365); // Define 1 ano atrás para permitir carregar mais histórico
+            start.setHours(0, 0, 0, 0);
+            end.setHours(23, 59, 59, 999);
+            
+            currentStartDate = start;
+            currentEndDate = end;
+        }
+
+        // Formatar data para API
+        function formatDateForAPI(date) {
+            return date.toISOString().split('.')[0] + '.000Z';
+        }
+
+        // Delay auxiliar para evitar rate limit (Erro 429)
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        // Buscar dados da API
+        async function fetchHistory(page = 1) {
+            try {
+                const isLoadMore = page > 1;
+                
+                if (!isLoadMore) {
+                    showLoading();
+                } else {
+                    loadMoreBtn.textContent = 'Carregando...';
+                    loadMoreBtn.disabled = true;
+                }
+                
+                const startDate = currentStartDate;
+                const endDate = currentEndDate;
+                
+                // Construir URL da API
+                const targetUrl = `${API_BASE}?startDate=${formatDateForAPI(startDate)}&endDate=${formatDateForAPI(endDate)}&page=${page}`;
+                // Adicionar timestamp para evitar cache
+                const url = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}&_t=${Date.now()}`;
+                
+                console.log('Buscando dados de:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.records) {
+                    currentPage = page; // Atualiza a página atual apenas em caso de sucesso
+                    
+                    if (!isLoadMore) {
+                        allRecords = data.records;
+                    } else {
+                        allRecords = [...allRecords, ...data.records];
+                    }
+                    
+                    applyFilters();
+                    
+                    // Configurar botão Exibir Mais
+                    const totalPages = data.totalPages;
+                    updateLoadMoreButton(page, totalPages, data.records.length);
+                } else {
+                    throw new Error('Formato de dados inválido');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao buscar histórico:', error);
+                
+                if (isLoadMore) {
+                    loadMoreBtn.textContent = '❌ Erro - Tentar Novamente';
+                    loadMoreBtn.disabled = false;
+                } else {
+                    showError(error.message);
+                }
+            }
+        }
+
+        // Aplicar filtros locais
+        function applyFilters() {
+            let filtered = [...allRecords];
+            // Por padrão, mantém a ordem original (LTR) e adiciona a classe RTL se necessário (removido aqui)
+            resultsContainer.classList.add('rtl-grid'); // Mantendo o padrão visual anterior (invertido) fixo, ou remova esta linha para LTR.
+            displayResults(filtered, false);
+        }
+
+        // Exibir resultados
+        function displayResults(records, append = false) {
+            if (!append) {
+                resultsContainer.innerHTML = '';
+                lastRenderedDateString = null;
+            }
+            
+            if (!records || records.length === 0) {
+                if (!append) resultsContainer.innerHTML = '<div class="error">Nenhum resultado encontrado para o período selecionado</div>';
+                return;
+            }
+            
+            records.forEach(record => {
+                const time = new Date(record.created_at);
+                const dateString = time.toLocaleDateString('pt-BR');
+
+                if (lastRenderedDateString && lastRenderedDateString !== dateString) {
+                    const separator = document.createElement('div');
+                    separator.className = 'date-separator';
+                    separator.textContent = `📅 ${dateString}`;
+                    resultsContainer.appendChild(separator);
+                }
+                lastRenderedDateString = dateString;
+
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                
+                const number = parseInt(record.roll != null ? record.roll : record.number);
+                
+                // Determinar cor baseada no número
+                let colorClass = 'result-white';
+                if (number >= 1 && number <= 7) {
+                    colorClass = 'result-red';
+                } else if (number >= 8 && number <= 14) {
+                    colorClass = 'result-black';
+                }
+                
+                resultItem.className += ' ' + colorClass;
+                
+                // Formatar horário
+                const timeString = time.toLocaleTimeString('pt-BR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                // Adicionar número e horário
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'result-number';
+                const displayValue = record.roll != null ? record.roll : (record.number != null ? record.number : '?');
+                numberDiv.textContent = displayValue;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'result-time';
+                timeDiv.textContent = timeString;
+                
+                resultItem.appendChild(numberDiv);
+                resultItem.appendChild(timeDiv);
+                
+                // Tooltip com informações detalhadas
+                resultItem.title = `Número: ${displayValue}\nCor: ${record.color}\nData: ${time.toLocaleString('pt-BR')}`;
+                
+                resultsContainer.appendChild(resultItem);
+            });
+        }
+
+        // Atualizar estado do botão Exibir Mais
+        function updateLoadMoreButton(current, totalPages, currentCount) {
+            let hasMore = false;
+            if (totalPages) {
+                hasMore = current < totalPages;
+            } else {
+                // Fallback: se recebeu 50 itens (limite padrão), assume que tem mais
+                hasMore = currentCount >= 50;
+            }
+
+            if (hasMore) {
+                loadMoreBtn.style.display = 'inline-block';
+                loadMoreBtn.textContent = 'Exibir Mais';
+                loadMoreBtn.disabled = false;
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
+        }
+
+        // Mostrar estado de carregamento
+        function showLoading() {
+            resultsContainer.innerHTML = '<div class="loading">Carregando resultados...</div>';
+            loadMoreBtn.style.display = 'none';
+        }
+
+        // Mostrar erro
+        function showError(message) {
+            resultsContainer.innerHTML = `
+                <div class="error">
+                    <h3>⚠️ Erro ao carregar dados</h3>
+                    <p>${message}</p>
+                    <p>Verifique sua conexão e tente novamente.</p>
+                </div>
+            `;
+        }
+
+        loadMoreBtn.addEventListener('click', () => {
+            fetchHistory(currentPage + 1);
+        });
+
+        // Auto-refresh inteligente a cada 10 segundos
+        setInterval(() => {
+            updateLatestResults();
+        }, 10000);
+
+        async function updateLatestResults() {
+            try {
+                // Busca sempre a página 1 para novos resultados
+                const startDate = currentStartDate || new Date();
+                const endDate = new Date(); // Hora atual
+                
+                const targetUrl = `${API_BASE}?startDate=${formatDateForAPI(startDate)}&endDate=${formatDateForAPI(endDate)}&page=1`;
+                const url = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}&_t=${Date.now()}`;
+                
+                const response = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                if (data && data.records && data.records.length > 0) {
+                    const newRecords = data.records;
+                    // Filtra apenas os que não estão na lista atual (por ID)
+                    const existingIds = new Set(allRecords.map(r => r.id));
+                    const trulyNewRecords = newRecords.filter(r => !existingIds.has(r.id));
+                    
+                    if (trulyNewRecords.length > 0) {
+                        allRecords = [...trulyNewRecords, ...allRecords];
+                        applyFilters();
+                    }
+                }
+            } catch (error) {
+                console.error('Erro no auto-refresh:', error);
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializeDates();
+            
+            // Carregar inicial (busca sequencial até 300 itens)
+            await fetchHistory(1);
+            
+            // Carregar mais páginas até atingir 300 itens
+            while (allRecords.length < 300) {
+                const nextPage = currentPage + 1;
+                if (nextPage > 10) break; // Limite de segurança
+                
+                const prevCount = allRecords.length;
+                await fetchHistory(nextPage);
+                
+                if (allRecords.length <= prevCount) break; // Sem novos dados
+                await delay(100);
+            }
+        });
+    </script>
+</body>
+</html>

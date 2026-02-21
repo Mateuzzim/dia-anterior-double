@@ -1,0 +1,2931 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico Dia Anterior</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+        
+        body {
+            background-color: #050505;
+            /* Animação de Grid Futurista */
+            background-image: 
+                linear-gradient(rgba(241, 44, 76, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(241, 44, 76, 0.15) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: center top;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            animation: moveGrid 20s linear infinite;
+            zoom: 0.7;
+        }
+
+        @keyframes moveGrid {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+        
+        .container {
+            max-width: 99%;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+            border: 1px solid #f12c4c; /* Vermelho Blaze */
+            box-shadow: 0 0 20px rgba(241, 44, 76, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Efeito de brilho passando pelo header */
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 100%; }
+            100% { left: 100%; }
+        }
+        
+        h1 {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-bottom: 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #f12c4c, 0 0 20px #f12c4c;
+            letter-spacing: 2px;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            color: #ccc;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #f12c4c;
+            border: 1px solid #f12c4c;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(241, 44, 76, 0.1);
+        }
+        
+        .btn:hover {
+            background: #f12c4c;
+            color: #000;
+            box-shadow: 0 0 20px rgba(241, 44, 76, 0.6);
+        }
+        
+        /* Estilo do Seletor de Data */
+        .date-selector-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .history-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 30px;
+            width: 100%;
+            direction: rtl;
+            justify-content: center;
+        }
+        
+        .result-item {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 50px;
+            direction: ltr;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .result-item:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            border-color: #fff;
+        }
+        
+        .result-number { font-size: 1.1rem; margin-bottom: 0; }
+        .result-time { font-size: 0.6rem; opacity: 0.9; }
+        
+        /* Cores Blaze Futuristas */
+        .result-red { 
+            background: linear-gradient(135deg, #f12c4c, #8f0e24); 
+            color: white; 
+            border: 1px solid #ff4d6d;
+            box-shadow: 0 0 5px rgba(241, 44, 76, 0.4);
+        }
+        .result-black { 
+            background: linear-gradient(135deg, #262626, #0a0a0a); 
+            color: white; 
+            border: 1px solid #404040;
+        }
+        .result-white { 
+            background: linear-gradient(135deg, #ffffff, #d1d5db); 
+            color: #f12c4c; 
+            border: 1px solid #fff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+            font-weight: 900;
+        }
+        
+        .load-more-container { text-align: center; margin-top: 30px; padding-bottom: 20px; }
+        .loading { text-align: center; padding: 40px; font-size: 1.2rem; color: #94a3b8; }
+        .error { text-align: center; padding: 40px; color: #f87171; background: rgba(220, 38, 38, 0.1); border-radius: 15px; border: 1px solid rgba(220, 38, 38, 0.3); }
+        
+        .current-time-marker {
+            border: 2px solid #fbbf24 !important; /* Amarelo Ouro */
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+            z-index: 20;
+            position: relative;
+        }
+        .current-time-marker::after {
+            content: 'HORA ATUAL';
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fbbf24;
+            color: #000;
+            font-size: 0.6rem;
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        .live-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(5px);
+            border-radius: 4px;
+            border: 1px solid #333;
+            border-left: 4px solid #f12c4c; /* Detalhe lateral vermelho */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .live-title {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        #live-results {
+            direction: ltr;
+            flex-wrap: wrap-reverse;
+        }
+
+        #comparison-results {
+            direction: ltr;
+        }
+
+        .result-waiting {
+            background: rgba(20, 20, 20, 0.5);
+            border: 1px dashed #444;
+            color: #666;
+            animation: pulse-waiting 2s infinite ease-in-out;
+        }
+        @keyframes pulse-waiting {
+            0% { opacity: 0.3; border-color: #333; }
+            50% { opacity: 0.7; border-color: #f12c4c; }
+            100% { opacity: 0.3; border-color: #333; }
+        }
+
+        .latest-result {
+            border: 2px solid #00f2ff !important; /* Ciano Neon para destaque */
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+            z-index: 10;
+            animation: neonPulse 1.5s infinite alternate;
+        }
+        
+        .pattern-highlight {
+            border: 2px solid #d946ef !important; /* Magenta Neon */
+            box-shadow: 0 0 15px rgba(217, 70, 239, 0.6);
+            z-index: 15;
+        }
+
+        @keyframes neonPulse {
+            from { box-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
+            to { box-shadow: 0 0 25px rgba(0, 242, 255, 0.9); }
+        }
+
+        /* Estilos do Bot */
+        #bot-container {
+            border-left: 4px solid #00f2ff;
+            background: linear-gradient(135deg, rgba(0, 30, 40, 0.95), rgba(0, 10, 20, 0.98)); /* Azul Profundo */
+        }
+        .bot-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .bot-content.compact {
+            flex-direction: row;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+        }
+        .prediction-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            color: #ccc;
+        }
+        .prediction-value {
+            font-weight: 800;
+            padding: 5px 20px;
+            border-radius: 4px;
+            letter-spacing: 2px;
+            font-size: 1.3rem;
+        }
+        
+        .prediction-red { color: #f12c4c; border: 1px solid #f12c4c; background: rgba(241, 44, 76, 0.15); box-shadow: 0 0 10px rgba(241, 44, 76, 0.3); }
+        .prediction-black { color: #fff; border: 1px solid #fff; background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        .prediction-white { color: #00f2ff; border: 1px solid #00f2ff; background: rgba(0, 242, 255, 0.15); box-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
+
+        .confidence-bar { width: 200px; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 5px; }
+        .confidence-fill { height: 100%; background: linear-gradient(90deg, #00f2ff, #0099ff); width: 0%; transition: width 1s ease; box-shadow: 0 0 10px #00f2ff; }
+
+        .stats-box {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .stat-item {
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .stat-win { color: #00ff88; border: 1px solid #00ff88; }
+        .stat-loss { color: #ff0044; border: 1px solid #ff0044; }
+        
+        .history-stats-box {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+            opacity: 0.8;
+            transform: scale(0.9);
+        }
+        .stat-history-win { color: #00ff88; border: 1px solid #00ff88; }
+        .stat-history-loss { color: #ff0044; border: 1px solid #ff0044; }
+        .stat-history-win span, .stat-history-loss span { color: #ffffff; }
+
+        /* Layout Compacto */
+        .bot-section-left { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .bot-section-right { display: flex; flex-direction: column; gap: 8px; }
+        .stats-row-compact { display: flex; align-items: center; gap: 10px; }
+        .stats-label-compact { font-size: 0.7rem; color: #888; font-weight: bold; width: 70px; text-align: right; letter-spacing: 1px; }
+
+        /* Configurações do Bot */
+        .settings-btn {
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid #00f2ff;
+            color: #00f2ff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 15px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .settings-btn:hover { background: #00f2ff; color: #000; box-shadow: 0 0 10px #00f2ff; }
+        
+        .settings-panel {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none; /* Oculto por padrão */
+        }
+        .gale-selector { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .gale-option { cursor: pointer; padding: 5px 15px; border: 1px solid #444; border-radius: 4px; color: #888; transition: all 0.3s; font-weight: bold; }
+        .gale-option:hover { border-color: #666; color: #fff; }
+        .gale-option.active { border-color: #00f2ff; color: #00f2ff; box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); background: rgba(0, 242, 255, 0.05); }
+        
+        /* Estilo específico para botão de inverter */
+        .gale-option.invert-btn { border-color: #ff9900; color: #ff9900; }
+        .gale-option.invert-btn.active { background: rgba(255, 153, 0, 0.15); box-shadow: 0 0 10px rgba(255, 153, 0, 0.3); color: #ffcc00; border-color: #ffcc00; }
+
+        /* Config Container Style */
+        #config-container {
+            border-left: 4px solid #ffd700;
+            background: linear-gradient(135deg, rgba(40, 35, 0, 0.95), rgba(15, 12, 0, 0.98)); /* Amarelo/Ouro Escuro */
+        }
+
+        .reset-stats-btn {
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+            padding: 8px;
+            background: rgba(255, 0, 68, 0.1);
+            border: 1px solid #ff0044;
+            color: #ff0044;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .reset-stats-btn:hover { background: #ff0044; color: white; box-shadow: 0 0 15px rgba(255, 0, 68, 0.4); }
+
+        .dashboard-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: stretch;
+        }
+        .dashboard-row .live-section {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        @media (max-width: 768px) { .dashboard-row { flex-direction: column; } }
+
+        /* Estilos Bot Branco */
+        #white-bot-container {
+            border-left: 4px solid #00ff88;
+            background: linear-gradient(135deg, rgba(0, 40, 20, 0.95), rgba(0, 15, 5, 0.98)); /* Verde Escuro */
+        }
+        
+        #white-config-container {
+            border-left: 4px solid #ff00cc;
+            background: linear-gradient(135deg, rgba(50, 0, 30, 0.95), rgba(20, 0, 10, 0.98)); /* Rosa/Roxo Escuro */
+        }
+        .white-highlight { color: #fff; text-shadow: 0 0 10px #fff; }
+
+        /* Árvore de Decisão Gale */
+        .tree-step {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: #fff;
+            background: #333;
+            margin: 0 2px;
+        }
+        .tree-step.active {
+            border-color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 5px rgba(255,255,255,0.5);
+            z-index: 2;
+        }
+        .tree-red { background: linear-gradient(135deg, #f12c4c, #8f0e24); border-color: #ff4d6d; }
+        .tree-black { background: linear-gradient(135deg, #262626, #0a0a0a); border-color: #666; }
+
+        /* Gale Log */
+        .gale-log-container {
+            width: 100%;
+            margin-top: 10px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        .gale-log-title {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .gale-logs {
+            max-height: 100px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .gale-log-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        .gale-log-path { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+        .log-step { display: flex; align-items: center; gap: 2px; }
+        .log-arrow { color: #444; font-size: 0.6rem; }
+
+        /* Configurações Compactas */
+        .config-row { display: flex; gap: 10px; justify-content: space-between; margin-bottom: 10px; }
+        .config-col { flex: 1; min-width: 120px; }
+        .config-label { text-align: center; margin-bottom: 5px; color: #ccc; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+        .compact-select { width: 100%; padding: 6px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #333; border-radius: 4px; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .checkbox-item { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; }
+
+        .blink-effect { animation: blinkAnimation 0.5s ease-in-out 4; }
+        @keyframes blinkAnimation {
+            0%, 100% { color: #fff; text-shadow: none; }
+            50% { color: #00ff88; text-shadow: 0 0 15px #00ff88; transform: scale(1.05); }
+        }
+
+        /* Side History Panel */
+        #side-history-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 17%;
+            height: calc(100vh - 20px);
+            background: rgba(5, 5, 5, 0.9);
+            border: 1px solid #333;
+            border-left: 2px solid #f12c4c;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            z-index: 90;
+            box-shadow: -5px 5px 20px rgba(0,0,0,0.5);
+        }
+        .side-panel-header { padding: 10px; background: rgba(20, 20, 20, 0.95); border-bottom: 1px solid #333; color: #fff; font-weight: bold; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 1px; }
+        #side-history-list { flex: 1; overflow-y: auto; padding: 5px; }
+        .side-hist-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; margin-bottom: 3px; background: rgba(255,255,255,0.03); border-radius: 3px; border-left: 3px solid transparent; font-size: 0.75rem; }
+        .side-hist-item.win { border-left-color: #00ff88; background: rgba(0, 255, 136, 0.05); }
+        .side-hist-item.loss { border-left-color: #ff0044; background: rgba(255, 0, 68, 0.05); }
+        .side-hist-info { display: flex; flex-direction: column; gap: 2px; }
+        .side-hist-time { color: #888; font-size: 0.65rem; }
+        .side-hist-gale { font-weight: bold; color: #ccc; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; }
+        .side-hist-result { font-weight: bold; font-size: 0.8rem; }
+        .side-hist-result.win { color: #00ff88; }
+        .side-hist-result.loss { color: #ff0044; }
+
+        /* Layout Adjustment */
+        .container > .live-section, .container > .dashboard-row { width: 81%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="side-history-container">
+            <div class="side-panel-header">
+                <span>📜 Histórico Entradas</span>
+                <span id="side-total-count" style="font-size: 0.7rem; color: #888;">0</span>
+            </div>
+            <div id="side-history-list"></div>
+        </div>
+
+        <div class="live-section">
+            <h2 class="live-title">🔥 Dia Atual - Últimas 15</h2>
+            <div id="live-results" class="history-grid" style="margin-bottom: 0;"></div>
+        </div>
+
+        <div class="dashboard-row">
+            <div class="live-section" id="config-container">
+                <h2 class="live-title" style="color: #ccc; text-shadow: 0 0 5px rgba(255, 255, 255, 0.3); margin-bottom: 10px;">⚙️ Configurações</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <div class="config-label">Gale (Martingale)</div>
+                    <div class="gale-selector" id="gale-options">
+                        <div class="gale-option active" data-value="0">SEM</div>
+                        <div class="gale-option" data-value="1">G1</div>
+                        <div class="gale-option" data-value="2">G2</div>
+                        <div class="gale-option" data-value="3">G3</div>
+                        <div class="gale-option" data-value="4">G4</div>
+                    </div>
+                </div>
+
+                <div class="config-row">
+                    <div class="config-col">
+                        <div class="config-label">Estratégia</div>
+                        <select id="strategy-selector" class="compact-select">
+                            <option value="time">⏰ Temporal</option>
+                            <option value="pattern">🎨 Padrões Cores</option>
+                            <option value="pattern_even_odd">🔢 Padrões Par/Ímpar</option>
+                        </select>
+                    </div>
+                    <div class="config-col">
+                        <div class="config-label">Modo Gale</div>
+                        <select id="gale-mode-selector" class="compact-select">
+                            <option value="fixed">🔒 Fixo</option>
+                            <option value="dynamic">🔄 Dinâmico</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="pattern-length-container" style="display: none; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                    <div class="config-label">Tamanho Padrão</div>
+                    <div class="gale-selector" id="pattern-length-options" style="margin-bottom: 10px;">
+                        <div class="gale-option" data-value="2">2</div>
+                        <div class="gale-option active" data-value="3">3</div>
+                        <div class="gale-option" data-value="4">4</div>
+                        <div class="gale-option" data-value="5">5</div>
+                        <div class="gale-option" data-value="6">6</div>
+                        <div class="gale-option" data-value="7">7</div>
+                        <div class="gale-option" data-value="8">8</div>
+                        <div class="gale-option" data-value="9">9</div>
+                        <div class="gale-option" data-value="10">10</div>
+                    </div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pattern-majority-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                            <label for="pattern-majority-mode" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Maioria</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pattern-minority-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                            <label for="pattern-minority-mode" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Minoria</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pattern-ignore-white" style="cursor: pointer; accent-color: #00f2ff;">
+                            <label for="pattern-ignore-white" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Ignorar ⚪</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pattern-alternate-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                            <label for="pattern-alternate-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Alternar M/m</label>
+                            <input type="number" id="pattern-alternate-count" value="2" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
+                            <span style="font-size: 0.7rem; color: #ccc;">Wins</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pattern-alternate-loss-mode" style="cursor: pointer; accent-color: #ff0044;">
+                            <label for="pattern-alternate-loss-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Alternar M/m</label>
+                            <input type="number" id="pattern-alternate-loss-count" value="2" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
+                            <span style="font-size: 0.7rem; color: #ccc;">Loss</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pattern-auto-resize-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                            <label for="pattern-auto-resize-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Ciclar Tam.</label>
+                            <input type="number" id="pattern-auto-resize-count" value="3" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
+                            <span style="font-size: 0.7rem; color: #ccc;">Wins</span>
+                        </div>
+                    </div>
+                    
+                    <div id="even-odd-specific-options" style="display: none; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px;">
+                        <div class="config-label">Filtro de Padrão (Fixo)</div>
+                        <div class="gale-selector">
+                            <div id="btn-pattern-even" class="gale-option">Somente PAR</div>
+                            <div id="btn-pattern-odd" class="gale-option">Somente ÍMPAR</div>
+                        </div>
+                        <div class="gale-selector" style="margin-top: 10px;">
+                            <div id="btn-pattern-invert" class="gale-option invert-btn" style="width: 100%; text-align: center;">🔀 Inverter Entrada</div>
+                        </div>
+                    </div>
+                </div>
+                <button id="reset-stats-btn" class="reset-stats-btn" style="margin-top: 5px; padding: 6px;">🗑️ Resetar Placar</button>
+            </div>
+
+            <div class="live-section" id="bot-container">
+                <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+                    <h2 class="live-title" style="margin-bottom: 0; color: #00f2ff; text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);">🤖 Bot Análise Temporal</h2>
+                </div>
+                
+                <div class="bot-content compact">
+                    <div class="bot-section-left">
+                        <div class="prediction-box" style="flex-direction: column; gap: 5px;">
+                            <span style="font-size: 0.8rem; color: #888;">ENTRADA SUGERIDA</span>
+                            <span id="bot-prediction" class="prediction-value">Analisando...</span>
+                        </div>
+                        <div id="gale-tree-container" style="display: none; margin-top: 8px; flex-direction: column; align-items: center;">
+                            <span style="font-size: 0.55rem; color: #666; margin-bottom: 3px; text-transform: uppercase;">Sequência Gale Dinâmico</span>
+                            <div id="gale-tree-steps" style="display: flex; justify-content: center;"></div>
+                        </div>
+                        <div style="text-align: center; font-size: 0.7rem; color: #666; margin-top: 5px;">PADRÃO IDENTIFICADO<div class="confidence-bar" style="width: 150px; height: 4px;"><div id="bot-confidence" class="confidence-fill"></div></div></div>
+                        <div id="pattern-count-display" style="font-size: 0.8rem; color: #00f2ff; margin-top: 5px; display: none; font-weight: bold; text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);"></div>
+                    </div>
+                    
+                    <div class="bot-section-right">
+                        <div class="stats-row-compact">
+                            <span class="stats-label-compact">AO VIVO</span>
+                            <div class="stat-item stat-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="win-count">0</span></div>
+                            <div class="stat-item stat-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="loss-count">0</span></div>
+                        </div>
+                        <div class="stats-row-compact">
+                            <span class="stats-label-compact">HISTÓRICO</span>
+                            <div class="stat-item stat-history-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="hist-win-count">0</span></div>
+                            <div class="stat-item stat-history-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="hist-loss-count">0</span></div>
+                        </div>
+                    </div>
+                    <div class="gale-log-container">
+                        <div class="gale-log-title">Histórico de Gales</div>
+                        <div id="gale-logs" class="gale-logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="live-section" id="comparison-container" style="display: none;">
+            <h2 class="live-title">📅 Ontem - Mesmo Horário</h2>
+            <div id="comparison-results" class="history-grid" style="margin-bottom: 0;"></div>
+        </div>
+
+        <div class="dashboard-row" id="white-bot-row">
+            <div class="live-section" id="white-config-container">
+                <h2 class="live-title" style="color: #fff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">⚙️ Config Branco</h2>
+                <div style="margin-bottom: 10px;">
+                    <div class="config-label">Estratégia</div>
+                    <select id="white-strategy-selector" class="compact-select">
+                        <option value="proximity">📍 Proximidade (Padrão)</option>
+                        <option value="anticipate">⏮️ Antecipação</option>
+                    </select>
+                    <div id="white-anticipate-input-container" style="display: none; margin-top: 5px;">
+                        <div class="config-label" style="font-size: 0.65rem;">Distância (Pedras)</div>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="number" id="white-anticipate-distance" class="compact-select" value="16" min="1" style="background: rgba(0,0,0,0.3); border: 1px solid #555; color: #fff; text-align: center; flex: 1;">
+                            <div class="checkbox-item" style="background: rgba(255, 0, 68, 0.1); border: 1px solid #ff0044; padding: 6px 8px; height: 100%;">
+                                <input type="checkbox" id="white-anticipate-invert" style="cursor: pointer; accent-color: #ff0044;">
+                                <label for="white-anticipate-invert" style="color: #ff0044; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none;">Inverter</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-bottom: 10px; color: #ccc; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Gale (Padrão 6)</div>
+                <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                    <input type="number" id="white-gale-input" class="compact-select" value="6" min="0" max="100" style="background: rgba(0,0,0,0.3); border: 1px solid #555; color: #fff; text-align: center; width: 80px; font-weight: bold; font-size: 1rem;">
+                </div>
+                <div class="checkbox-item" style="background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; padding: 6px 8px; margin-bottom: 10px; justify-content: center;">
+                    <input type="checkbox" id="white-stop-on-win" style="cursor: pointer; accent-color: #00ff88;">
+                    <label for="white-stop-on-win" style="color: #00ff88; font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none;">⛔ Stop on Win (Sinal)</label>
+                </div>
+                <button id="reset-white-stats-btn" class="reset-stats-btn" style="border-color: #fff; color: #fff; background: rgba(255,255,255,0.1);">🗑️ Resetar Placar</button>
+            </div>
+
+            <div class="live-section" id="white-bot-container">
+                <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+                    <h2 class="live-title" style="margin-bottom: 0; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">⚪ Bot Análise Branco</h2>
+                </div>
+                <div class="bot-content compact">
+                    <div class="bot-section-left">
+                        <div class="prediction-box" style="flex-direction: column; gap: 5px;">
+                            <span style="font-size: 0.8rem; color: #888;">STATUS</span>
+                            <span id="white-bot-prediction" class="prediction-value">Aguardando...</span>
+                        </div>
+                        <div style="text-align: center; font-size: 0.7rem; color: #666; margin-top: 5px;">DISTÂNCIA NO HISTÓRICO: <span id="white-distance-display" style="color: #fff; font-weight: bold;">--</span></div>
+                    </div>
+                    <div class="bot-section-right">
+                        <div class="stats-row-compact">
+                            <span class="stats-label-compact">AO VIVO</span>
+                            <div class="stat-item stat-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="white-win-count">0</span></div>
+                            <div class="stat-item stat-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="white-loss-count">0</span></div>
+                        </div>
+                        <div class="stats-row-compact">
+                            <span class="stats-label-compact">HISTÓRICO</span>
+                            <div class="stat-item stat-history-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="hist-white-win-count">0</span></div>
+                            <div class="stat-item stat-history-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="hist-white-loss-count">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <header>
+            <h1>Histórico Dia Anterior</h1>
+            <div class="date-selector-wrapper">
+                <input type="date" id="historyDateInput" class="compact-select" style="width: auto; background: rgba(0,0,0,0.8); border: 1px solid #f12c4c; color: white; padding: 8px;">
+                <button id="btnLoadDate" class="btn" style="padding: 8px 15px;">Buscar Data</button>
+                <button id="btnClearCache" class="btn" style="padding: 8px 15px; border-color: #ff9900; color: #ff9900; margin-left: 5px;" title="Apagar dados salvos desta data">Limpar Memória</button>
+            </div>
+            <div class="subtitle" id="dateDisplay">Carregando data...</div>
+        </header>
+
+        <div id="results" class="history-grid"></div>
+        
+        <div class="load-more-container">
+            <button id="loadMoreBtn" class="btn" style="display: none;">Carregar Mais Histórico</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://blaze.bet.br/api/singleplayer-originals/originals/roulette_games/recent/history/1';
+        let currentPage = 1;
+        let currentStartDate = null;
+        let currentEndDate = null;
+        let allRecords = [];
+
+        const resultsContainer = document.getElementById('results');
+        const liveResultsContainer = document.getElementById('live-results');
+        const comparisonResultsContainer = document.getElementById('comparison-results');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const dateDisplay = document.getElementById('dateDisplay');
+        let lastLiveTime = null;
+        let winCount = 0;
+        let lossCount = 0;
+        let currentBotPrediction = null;
+        let maxGale = 0;
+        let currentGaleCount = 0;
+        let lastProcessedId = null;
+        let apiCooldownUntil = 0;
+        let lastApiCallTime = 0;
+        let stopLoading = false; // Flag para parar carregamento anterior
+        let lastComparisonCenterId = null; // Controle para otimização de renderização
+        let lastProcessedLiveIdForBot = null; // Controle para otimização do bot
+        
+        // Variáveis Bot Branco
+        let whiteMaxGale = 6;
+        let whiteWinCount = 0;
+        let whiteLossCount = 0;
+        let currentWhiteBetting = false;
+        let currentWhiteGaleCount = 0;
+        let botWhiteStrategy = 'proximity';
+        let botWhiteAnticipateDistance = 16;
+        let botWhiteAnticipateInvert = false;
+        let botWhiteStopOnWin = false;
+        let lastWonWhiteSignalId = null;
+        let currentWhiteSignalId = null;
+        
+        // Variáveis para histórico completo de hoje (00:00 até agora)
+        let todayRecords = [];
+        let isTodayHistoryLoaded = false;
+        let botStrategy = 'time';
+        let currentLiveRecords = [];
+        let botPatternLength = 3;
+        let botPatternIgnoreWhite = false;
+        let botPatternMajorityMode = false;
+        let botPatternMinorityMode = false;
+        let botPatternAlternateMode = false;
+        let winsSinceAlternation = 0;
+        let botPatternAlternateCount = 2;
+        let botPatternAlternateLossMode = false;
+        let lossesSinceAlternation = 0;
+        let botPatternAlternateLossCount = 2;
+        let botPatternAutoResizeMode = false;
+        let botPatternAutoResizeCount = 3;
+        let winsSinceResize = 0;
+        let currentBaseIndex = null;
+        let botPatternFixedEven = false;
+        let botPatternFixedOdd = false;
+        let botPatternEvenOddInvert = false;
+        let botGaleMode = 'fixed';
+        let currentGaleSequence = [];
+        
+        // Cache para otimização do Histórico (Memorização de Placar)
+        let historyStatsCache = { count: 0, win: 0, loss: 0, skip: 0, lastId: null };
+        let historyWhiteStatsCache = { count: 0, win: 0, loss: 0, skip: 0, lastId: null, lastWonId: null };
+        let allRecordsTimeMap = new Map();
+
+        function resetHistoryStatsCache() {
+            historyStatsCache = { count: 0, win: 0, loss: 0, skip: 0, lastId: null };
+            historyWhiteStatsCache = { count: 0, win: 0, loss: 0, skip: 0, lastId: null, lastWonId: null };
+        }
+
+        function buildAllRecordsTimeMap() {
+            allRecordsTimeMap.clear();
+            if (!allRecords) return;
+            allRecords.forEach((rec, index) => {
+                const d = new Date(rec.created_at);
+                const key = `${d.getHours()}:${d.getMinutes()}`;
+                if (!allRecordsTimeMap.has(key)) {
+                    allRecordsTimeMap.set(key, index);
+                }
+            });
+        }
+
+        // Carregar estado salvo (Placar e Configurações)
+        function loadBotState() {
+            const savedStats = localStorage.getItem('bot_stats');
+            if (savedStats) {
+                const stats = JSON.parse(savedStats);
+                winCount = stats.win || 0;
+                lossCount = stats.loss || 0;
+                document.getElementById('win-count').textContent = winCount;
+                document.getElementById('loss-count').textContent = lossCount;
+            }
+
+            const savedSettings = localStorage.getItem('bot_settings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                maxGale = settings.maxGale || 0;
+                document.querySelectorAll('#gale-options .gale-option').forEach(opt => {
+                    opt.classList.toggle('active', parseInt(opt.getAttribute('data-value')) === maxGale);
+                });
+            }
+
+            const savedStrategy = localStorage.getItem('bot_strategy');
+            if (savedStrategy) {
+                botStrategy = savedStrategy;
+                const selector = document.getElementById('strategy-selector');
+                if(selector) selector.value = botStrategy;
+                togglePatternOptions(botStrategy === 'pattern' || botStrategy === 'pattern_even_odd');
+            }
+
+            const savedGaleMode = localStorage.getItem('bot_gale_mode');
+            if (savedGaleMode) {
+                botGaleMode = savedGaleMode;
+                const selector = document.getElementById('gale-mode-selector');
+                if(selector) selector.value = botGaleMode;
+            }
+
+            const savedPatternLength = localStorage.getItem('bot_pattern_length');
+            if (savedPatternLength) {
+                botPatternLength = parseInt(savedPatternLength);
+                document.querySelectorAll('#pattern-length-options .gale-option').forEach(opt => {
+                    opt.classList.toggle('active', parseInt(opt.getAttribute('data-value')) === botPatternLength);
+                });
+            }
+
+            const savedIgnoreWhite = localStorage.getItem('bot_pattern_ignore_white');
+            if (savedIgnoreWhite !== null) {
+                botPatternIgnoreWhite = savedIgnoreWhite === 'true';
+                const cb = document.getElementById('pattern-ignore-white');
+                if (cb) cb.checked = botPatternIgnoreWhite;
+            }
+
+            const savedMajority = localStorage.getItem('bot_pattern_majority');
+            if (savedMajority !== null) {
+                botPatternMajorityMode = savedMajority === 'true';
+                const cb = document.getElementById('pattern-majority-mode');
+                if (cb) cb.checked = botPatternMajorityMode;
+            }
+
+            const savedMinority = localStorage.getItem('bot_pattern_minority');
+            if (savedMinority !== null) {
+                botPatternMinorityMode = savedMinority === 'true';
+                const cb = document.getElementById('pattern-minority-mode');
+                if (cb) cb.checked = botPatternMinorityMode;
+            }
+
+            const savedAlternate = localStorage.getItem('bot_pattern_alternate');
+            if (savedAlternate !== null) {
+                botPatternAlternateMode = savedAlternate === 'true';
+                const cb = document.getElementById('pattern-alternate-mode');
+                if (cb) cb.checked = botPatternAlternateMode;
+            }
+
+            const savedAlternateCount = localStorage.getItem('bot_pattern_alternate_count');
+            if (savedAlternateCount) {
+                botPatternAlternateCount = parseInt(savedAlternateCount);
+                const input = document.getElementById('pattern-alternate-count');
+                if (input) input.value = botPatternAlternateCount;
+            }
+
+            const savedAlternateLoss = localStorage.getItem('bot_pattern_alternate_loss');
+            if (savedAlternateLoss !== null) {
+                botPatternAlternateLossMode = savedAlternateLoss === 'true';
+                const cb = document.getElementById('pattern-alternate-loss-mode');
+                if (cb) cb.checked = botPatternAlternateLossMode;
+            }
+
+            const savedAlternateLossCount = localStorage.getItem('bot_pattern_alternate_loss_count');
+            if (savedAlternateLossCount) {
+                botPatternAlternateLossCount = parseInt(savedAlternateLossCount);
+                const input = document.getElementById('pattern-alternate-loss-count');
+                if (input) input.value = botPatternAlternateLossCount;
+            }
+
+            const savedAutoResize = localStorage.getItem('bot_pattern_auto_resize');
+            if (savedAutoResize !== null) {
+                botPatternAutoResizeMode = savedAutoResize === 'true';
+                const cb = document.getElementById('pattern-auto-resize-mode');
+                if (cb) cb.checked = botPatternAutoResizeMode;
+            }
+
+            const savedAutoResizeCount = localStorage.getItem('bot_pattern_auto_resize_count');
+            if (savedAutoResizeCount) {
+                botPatternAutoResizeCount = parseInt(savedAutoResizeCount);
+                const input = document.getElementById('pattern-auto-resize-count');
+                if (input) input.value = botPatternAutoResizeCount;
+            }
+            
+            const savedFixedEven = localStorage.getItem('bot_pattern_fixed_even');
+            if (savedFixedEven === 'true') {
+                botPatternFixedEven = true;
+                document.getElementById('btn-pattern-even').classList.add('active');
+            }
+
+            const savedFixedOdd = localStorage.getItem('bot_pattern_fixed_odd');
+            if (savedFixedOdd === 'true') {
+                botPatternFixedOdd = true;
+                document.getElementById('btn-pattern-odd').classList.add('active');
+            }
+
+            const savedEvenOddInvert = localStorage.getItem('bot_pattern_even_odd_invert');
+            if (savedEvenOddInvert !== null) {
+                botPatternEvenOddInvert = savedEvenOddInvert === 'true';
+                const btn = document.getElementById('btn-pattern-invert');
+                if (btn && botPatternEvenOddInvert) btn.classList.add('active');
+            }
+            
+            // Carregar Bot Branco
+            const savedWhiteStats = localStorage.getItem('white_bot_stats');
+            if (savedWhiteStats) {
+                const stats = JSON.parse(savedWhiteStats);
+                whiteWinCount = stats.win || 0;
+                whiteLossCount = stats.loss || 0;
+                document.getElementById('white-win-count').textContent = whiteWinCount;
+                document.getElementById('white-loss-count').textContent = whiteLossCount;
+            }
+
+            // Carregar Configurações Bot Branco
+            const savedWhiteSettings = localStorage.getItem('white_bot_settings');
+            if (savedWhiteSettings) {
+                const settings = JSON.parse(savedWhiteSettings);
+                whiteMaxGale = settings.maxGale !== undefined ? settings.maxGale : 6;
+                const input = document.getElementById('white-gale-input');
+                if (input) input.value = whiteMaxGale;
+            }
+
+            const savedWhiteStrategy = localStorage.getItem('white_bot_strategy');
+            if (savedWhiteStrategy) {
+                botWhiteStrategy = savedWhiteStrategy === 'anticipate_16' ? 'anticipate' : savedWhiteStrategy;
+                const sel = document.getElementById('white-strategy-selector');
+                if (sel) sel.value = botWhiteStrategy;
+                toggleWhiteStrategyInputs();
+            }
+
+            const savedWhiteDist = localStorage.getItem('white_bot_anticipate_distance');
+            if (savedWhiteDist) {
+                botWhiteAnticipateDistance = parseInt(savedWhiteDist);
+                const input = document.getElementById('white-anticipate-distance');
+                if (input) input.value = botWhiteAnticipateDistance;
+            }
+
+            const savedWhiteInvert = localStorage.getItem('white_bot_anticipate_invert');
+            if (savedWhiteInvert !== null) {
+                botWhiteAnticipateInvert = savedWhiteInvert === 'true';
+                const cb = document.getElementById('white-anticipate-invert');
+                if (cb) cb.checked = botWhiteAnticipateInvert;
+            }
+
+            const savedStopWin = localStorage.getItem('white_bot_stop_on_win');
+            if (savedStopWin !== null) {
+                botWhiteStopOnWin = savedStopWin === 'true';
+                const cb = document.getElementById('white-stop-on-win');
+                if (cb) cb.checked = botWhiteStopOnWin;
+            }
+        }
+
+        function initializeDates() {
+            const input = document.getElementById('historyDateInput');
+            
+            // Define padrão como ontem se o input estiver vazio
+            if (!input.value) {
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                
+                const yyyy = yesterday.getFullYear();
+                const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+                const dd = String(yesterday.getDate()).padStart(2, '0');
+                input.value = `${yyyy}-${mm}-${dd}`;
+            }
+
+            // Atualiza variáveis globais baseadas no input
+            const parts = input.value.split('-');
+            // Cria data usando construtor local para evitar problemas de fuso horário UTC
+            const start = new Date(parts[0], parts[1] - 1, parts[2]);
+            start.setHours(0, 0, 0, 0);
+            
+            const end = new Date(start);
+            end.setHours(23, 59, 59, 999);
+            
+            currentStartDate = start;
+            currentEndDate = end;
+            
+            dateDisplay.textContent = start.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        async function loadTodayHistory() {
+            const todayStart = new Date();
+            todayStart.setHours(0,0,0,0);
+            
+            let page = 1;
+            let fetching = true;
+            let allFetched = [];
+            let consecutiveErrors = 0;
+            
+            // Indicador visual de carregamento
+            document.getElementById('hist-win-count').textContent = '...';
+            document.getElementById('hist-loss-count').textContent = '...';
+            document.getElementById('hist-white-win-count').textContent = '...';
+            document.getElementById('hist-white-loss-count').textContent = '...';
+
+            while(fetching) {
+                try {
+                    // Respeitar cooldown global se houver bloqueio
+                    if (Date.now() < apiCooldownUntil) {
+                        await delay(1000);
+                        continue;
+                    }
+
+                    const apiEndDate = new Date();
+                    apiEndDate.setHours(apiEndDate.getHours() + 1); // Garante pegar até o último segundo
+
+                    // Throttle global para evitar conflito com o live
+                    while (Date.now() - lastApiCallTime < 5000) await delay(500);
+                    lastApiCallTime = Date.now();
+
+                    const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?startDate=${formatDateForAPI(todayStart)}&endDate=${formatDateForAPI(apiEndDate)}&page=${page}`)}&_t=${Date.now()}`;
+                    const resp = await fetch(url);
+                    
+                    if (resp.status === 429) {
+                        console.warn(`Rate limit (429) detectado na página ${page}. Aguardando...`);
+                        apiCooldownUntil = Date.now() + 15000; // Define pausa global maior (15s)
+                        await delay(5000 * (consecutiveErrors + 1)); // Espera progressiva maior
+                        consecutiveErrors++;
+                        if (consecutiveErrors > 5) fetching = false; // Desiste após 5 tentativas falhas
+                        continue; // Tenta a mesma página novamente
+                    }
+
+                    if (!resp.ok) {
+                        throw new Error(`Erro HTTP: ${resp.status}`);
+                    }
+
+                    // Verificar se a resposta é JSON antes de tentar fazer o parse
+                    const contentType = resp.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") === -1) {
+                        throw new Error("Resposta não é JSON (provável erro do proxy ou rate limit)");
+                    }
+
+                    const data = await resp.json();
+                    consecutiveErrors = 0; // Reseta erros ao ter sucesso
+                    
+                    if(data && data.records && data.records.length > 0) {
+                        allFetched = [...allFetched, ...data.records];
+                        
+                        // Atualização Progressiva: Calcula estatísticas com o que já temos
+                        const partialRecords = allFetched.filter(r => new Date(r.created_at) >= todayStart);
+                        if (partialRecords.length > 0) {
+                            todayRecords = partialRecords;
+                            todayRecords.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                            calculateHistoryStats(todayRecords);
+                            calculateAdvancedStats(todayRecords);
+                        }
+
+                        const lastRec = data.records[data.records.length - 1];
+                        // Se o último registro for mais antigo que hoje 00:00, paramos
+                        if(new Date(lastRec.created_at) < todayStart) fetching = false;
+                        else { page++; await delay(5000); } // Aumentado delay para evitar 429
+                    } else { fetching = false; }
+                    if(page > 100) fetching = false; // Limite de segurança
+                } catch(e) { 
+                    console.error("Erro ao carregar histórico de hoje", e); 
+                    consecutiveErrors++;
+                    if (consecutiveErrors > 3) fetching = false;
+                    await delay(1000);
+                }
+            }
+            
+            todayRecords = allFetched.filter(r => new Date(r.created_at) >= todayStart);
+            todayRecords.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+            isTodayHistoryLoaded = true;
+            calculateHistoryStats(todayRecords);
+            calculateAdvancedStats(todayRecords);
+        }
+
+        const formatDateForAPI = date => date.toISOString().split('.')[0] + '.000Z';
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function fetchHistory(page = 1) {
+            let attempts = 0;
+            const maxAttempts = 5;
+            const isLoadMore = page > 1;
+
+            while (attempts < maxAttempts) {
+                try {
+                    // Respeitar cooldown global
+                    if (Date.now() < apiCooldownUntil) {
+                        if (!isLoadMore && attempts === 0) resultsContainer.innerHTML = '<div class="loading">Aguardando API (Cooldown)...</div>';
+                        await delay(1000);
+                        continue;
+                    }
+
+                    if (!isLoadMore) {
+                        if (attempts === 0) resultsContainer.innerHTML = '<div class="loading">Carregando histórico...</div>';
+                    } else {
+                        loadMoreBtn.textContent = 'Carregando...';
+                        loadMoreBtn.disabled = true;
+                    }
+
+                    // Adiciona um buffer de 3 horas ao endDate da API para garantir que pegue até o último segundo do dia
+                    const apiEndDate = new Date(currentEndDate);
+                    apiEndDate.setHours(apiEndDate.getHours() + 3);
+
+                    const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?startDate=${formatDateForAPI(currentStartDate)}&endDate=${formatDateForAPI(apiEndDate)}&page=${page}`)}&_t=${Date.now()}`;
+
+                    const response = await fetch(url);
+
+                    if (response.status === 429) {
+                        console.warn(`Rate limit (429) na página ${page}. Tentativa ${attempts + 1}/${maxAttempts}`);
+                        apiCooldownUntil = Date.now() + 15000; // 15s de pausa global
+                        attempts++;
+                        await delay(2000 * attempts); // Backoff exponencial
+                        continue;
+                    }
+
+                    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+
+                    const data = await response.json();
+
+                    if (data && data.records) {
+                        // Filtra rigorosamente os registros para garantir que pertencem apenas ao dia anterior
+                        const filteredRecords = data.records.filter(record => {
+                            const recordDate = new Date(record.created_at);
+                            return recordDate >= currentStartDate && recordDate <= currentEndDate;
+                        });
+
+                        currentPage = page;
+                        allRecords = isLoadMore ? [...allRecords, ...filteredRecords] : filteredRecords;
+                        buildAllRecordsTimeMap(); // Indexa o histórico para busca rápida
+                        resetHistoryStatsCache(); // Reseta cache pois a base de comparação mudou
+                        lastComparisonCenterId = null; // Força atualização visual
+                        lastProcessedLiveIdForBot = null;
+                        renderResults(isLoadMore ? filteredRecords : allRecords, isLoadMore);
+                        updateComparisonSection();
+                        
+                        // Garante que as estatísticas avançadas sejam recalculadas assim que o histórico de ontem chegar
+                        if (typeof todayRecords !== 'undefined' && todayRecords.length > 0) {
+                            calculateAdvancedStats(todayRecords);
+                            calculateHistoryStats(todayRecords);
+                        }
+                        
+                        const hasMore = data.totalPages ? page < data.totalPages : data.records.length >= 50;
+                        loadMoreBtn.style.display = hasMore ? 'inline-block' : 'none';
+                        loadMoreBtn.disabled = false;
+                        return hasMore;
+                    } else {
+                        throw new Error('Formato de dados inválido');
+                    }
+                } catch (error) {
+                    console.error(`Erro fetchHistory (Pg ${page}, Tentativa ${attempts + 1}):`, error);
+                    attempts++;
+                    
+                    if (attempts >= maxAttempts) {
+                        if (page === 1) resultsContainer.innerHTML = `<div class="error">Erro: ${error.message}</div>`;
+                        else { 
+                            loadMoreBtn.textContent = 'Tentar Novamente'; 
+                            loadMoreBtn.disabled = false; 
+                        }
+                        return null;
+                    }
+                    await delay(2000);
+                }
+            }
+            return null;
+        }
+
+        // Virtual Scrolling Logic
+        const virtualScroller = {
+            itemSize: 58, // 50px width + 8px gap
+            itemsPerRow: 1,
+            data: [],
+            container: null,
+            ticking: false,
+            highlightIds: new Set()
+        };
+
+        function initVirtualScroller() {
+            virtualScroller.container = document.getElementById('results');
+            window.addEventListener('scroll', onVirtualScroll, { passive: true });
+            window.addEventListener('resize', onVirtualResize);
+            onVirtualResize();
+        }
+
+        function onVirtualResize() {
+            if (!virtualScroller.container) return;
+            const containerWidth = virtualScroller.container.clientWidth;
+            virtualScroller.itemsPerRow = Math.floor((containerWidth + 8) / virtualScroller.itemSize); 
+            if (virtualScroller.itemsPerRow < 1) virtualScroller.itemsPerRow = 1;
+            renderVirtualItems();
+        }
+
+        function onVirtualScroll() {
+            if (!virtualScroller.ticking) {
+                window.requestAnimationFrame(() => {
+                    renderVirtualItems();
+                    virtualScroller.ticking = false;
+                });
+                virtualScroller.ticking = true;
+            }
+        }
+
+        function updateVirtualData(newData) {
+            virtualScroller.data = newData;
+            renderVirtualItems();
+        }
+
+        function renderVirtualItems() {
+            if (!virtualScroller.container || virtualScroller.data.length === 0) return;
+
+            const totalItems = virtualScroller.data.length;
+            const totalRows = Math.ceil(totalItems / virtualScroller.itemsPerRow);
+            
+            const rect = virtualScroller.container.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            
+            let startRow = 0;
+            if (rect.top < 0) startRow = Math.floor(Math.abs(rect.top) / virtualScroller.itemSize);
+            startRow = Math.max(0, startRow - 4);
+            
+            let visibleHeight = windowHeight;
+            if (rect.top > 0) visibleHeight -= rect.top;
+            
+            let visibleRows = Math.ceil(visibleHeight / virtualScroller.itemSize);
+            let endRow = startRow + visibleRows + 8;
+            if (endRow > totalRows) endRow = totalRows;
+            
+            const startIndex = startRow * virtualScroller.itemsPerRow;
+            const endIndex = Math.min(endRow * virtualScroller.itemsPerRow, totalItems);
+            
+            virtualScroller.container.style.paddingTop = `${startRow * virtualScroller.itemSize}px`;
+            virtualScroller.container.style.paddingBottom = `${(totalRows - endRow) * virtualScroller.itemSize}px`;
+            
+            virtualScroller.container.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            
+            for (let i = startIndex; i < endIndex; i++) {
+                const record = virtualScroller.data[i];
+                const num = parseInt(record.roll != null ? record.roll : record.number);
+                const color = (num >= 1 && num <= 7) ? 'result-red' : (num >= 8 && num <= 14) ? 'result-black' : 'result-white';
+                const time = new Date(record.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                const item = document.createElement('div');
+                item.className = `result-item ${color}`;
+                if (virtualScroller.highlightIds.has(record.id)) item.classList.add('pattern-highlight');
+                item.id = `record-${record.id}`;
+                item.innerHTML = `<div class="result-number">${num}</div><div class="result-time">${time}</div>`;
+                item.title = `Nº: ${num} | Hora: ${time}`;
+                fragment.appendChild(item);
+            }
+            virtualScroller.container.appendChild(fragment);
+        }
+
+        function renderResults(records, append = false) {
+            // Atualiza o Virtual Scroller com os dados completos (allRecords)
+            updateVirtualData(allRecords);
+        }
+
+        function renderLiveResults(records) {
+            liveResultsContainer.innerHTML = '';
+            records.forEach((record, index) => {
+                const num = parseInt(record.roll != null ? record.roll : record.number);
+                const color = (num >= 1 && num <= 7) ? 'result-red' : (num >= 8 && num <= 14) ? 'result-black' : 'result-white';
+                const time = new Date(record.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                const item = document.createElement('div');
+                item.className = `result-item ${color}`;
+                if (index === records.length - 1) item.classList.add('latest-result');
+                item.innerHTML = `<div class="result-number">${num}</div><div class="result-time">${time}</div>`;
+                item.title = `Nº: ${num} | Hora: ${time}`;
+                liveResultsContainer.appendChild(item);
+            });
+
+            // Adiciona 15 caixas de "aguardando"
+            for (let i = 0; i < 15; i++) {
+                const item = document.createElement('div');
+                item.className = 'result-item result-waiting';
+                item.innerHTML = `<div class="result-number" style="font-size: 1.2rem;">?</div>`;
+                liveResultsContainer.appendChild(item);
+            }
+        }
+
+        function renderComparisonResults(records, currentId, patternIndices = []) {
+            comparisonResultsContainer.innerHTML = '';
+            records.forEach(record => {
+                const num = parseInt(record.roll != null ? record.roll : record.number);
+                const color = (num >= 1 && num <= 7) ? 'result-red' : (num >= 8 && num <= 14) ? 'result-black' : 'result-white';
+                const time = new Date(record.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                const item = document.createElement('div');
+                item.className = `result-item ${color}`;
+                if (record.id === currentId) item.classList.add('current-time-marker'); // Marca a pedra exata do horário
+                if (patternIndices.includes(record.id)) item.classList.add('pattern-highlight'); // Marca o padrão
+                item.innerHTML = `<div class="result-number">${num}</div><div class="result-time">${time}</div>`;
+                item.title = `Nº: ${num} | Hora: ${time}`;
+                comparisonResultsContainer.appendChild(item);
+            });
+        }
+
+        async function updateLiveHistory() {
+            try {
+                // Se estiver em cooldown (bloqueio 429), não faz requisição
+                if (Date.now() < apiCooldownUntil) return;
+
+                // Throttle global
+                while (Date.now() - lastApiCallTime < 2000) await delay(100);
+                lastApiCallTime = Date.now();
+
+                const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?page=1`)}&_t=${Date.now()}`;
+                const response = await fetch(url);
+                
+                if (response.status === 429) {
+                    console.warn("Rate limit (Live) detectado. Pausando 10s...");
+                    apiCooldownUntil = Date.now() + 10000; // Pausa tudo por 10 segundos
+                    return;
+                }
+
+                if (!response.ok) return;
+
+                // Verifica se é JSON válido antes de tentar ler
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") === -1) return;
+
+                const data = await response.json();
+                
+                if (data && data.records) {
+                    const latestRecord = data.records[0];
+                    const isNewRecord = lastProcessedId && latestRecord.id !== lastProcessedId;
+                    
+                    // Lógica de verificação de Win/Loss (Temporal)
+                    if (isNewRecord && currentBotPrediction) {
+                        const num = parseInt(latestRecord.roll != null ? latestRecord.roll : latestRecord.number);
+                        let actualResult = 'white';
+                        
+                        if (botStrategy === 'pattern_even_odd') {
+                            if (num !== 0) actualResult = (num % 2 !== 0) ? 'odd' : 'even';
+                        } else {
+                            // Lógica de Cores
+                            if (num >= 1 && num <= 7) actualResult = 'red';
+                            else if (num >= 8 && num <= 14) actualResult = 'black';
+                        }
+                        
+                        if (actualResult === currentBotPrediction || actualResult === 'white') {
+                            winCount++;
+
+                            // Lógica de Alternância (A cada X Wins)
+                            if (botPatternAlternateMode && botStrategy === 'pattern') {
+                                winsSinceAlternation++;
+                                if (winsSinceAlternation >= botPatternAlternateCount) {
+                                    winsSinceAlternation = 0;
+                                    if (botPatternMajorityMode) {
+                                        botPatternMajorityMode = false;
+                                        botPatternMinorityMode = true;
+                                    } else {
+                                        botPatternMajorityMode = true;
+                                        botPatternMinorityMode = false;
+                                    }
+                                    const majCb = document.getElementById('pattern-majority-mode');
+                                    const minCb = document.getElementById('pattern-minority-mode');
+                                    if (majCb) majCb.checked = botPatternMajorityMode;
+                                    if (minCb) minCb.checked = botPatternMinorityMode;
+                                    localStorage.setItem('bot_pattern_majority', botPatternMajorityMode);
+                                    localStorage.setItem('bot_pattern_minority', botPatternMinorityMode);
+
+                                    const altLabel = document.querySelector('label[for="pattern-alternate-mode"]');
+                                    if (altLabel) {
+                                        altLabel.classList.add('blink-effect');
+                                        setTimeout(() => altLabel.classList.remove('blink-effect'), 2000);
+                                    }
+                                }
+                            }
+
+                            // Lógica de Auto Resize (Ciclar Tamanho)
+                            if (botPatternAutoResizeMode && botStrategy === 'pattern') {
+                                winsSinceResize++;
+                                if (winsSinceResize >= botPatternAutoResizeCount) {
+                                    winsSinceResize = 0;
+                                    // Cicla: 2 -> 3 ... -> 10 -> 2
+                                    let nextSize = botPatternLength + 1;
+                                    if (nextSize > 10) nextSize = 2;
+                                    
+                                    botPatternLength = nextSize;
+                                    localStorage.setItem('bot_pattern_length', botPatternLength);
+                                    
+                                    // Atualiza UI visualmente
+                                    document.querySelectorAll('#pattern-length-options .gale-option').forEach(opt => {
+                                        opt.classList.toggle('active', parseInt(opt.getAttribute('data-value')) === botPatternLength);
+                                    });
+                                    
+                                    const resizeLabel = document.querySelector('label[for="pattern-auto-resize-mode"]');
+                                    if (resizeLabel) {
+                                        resizeLabel.classList.add('blink-effect');
+                                        setTimeout(() => resizeLabel.classList.remove('blink-effect'), 2000);
+                                    }
+                                }
+                            }
+
+                            addGaleLog(currentGaleSequence, 'WIN', actualResult);
+                            currentBotPrediction = null; // Reseta previsão após vitória
+                            currentGaleCount = 0;
+                            currentGaleSequence = [];
+                            document.getElementById('win-count').textContent = winCount;
+                            localStorage.setItem('bot_stats', JSON.stringify({ win: winCount, loss: lossCount }));
+                        } else {
+                            // Lógica de Gale
+                            if (currentGaleCount < maxGale) {
+                                currentGaleCount++;
+                                
+                                if (botGaleMode === 'dynamic') {
+                                    // Lógica de Gale Dinâmico: Seguir a sequência do histórico
+                                    if (currentBaseIndex !== null) {
+                                        let nextIndex = currentBaseIndex - 1;
+                                        let foundNext = false;
+                                        
+                                        // Busca a próxima cor válida no histórico (pulando brancos)
+                                        while (nextIndex >= 0) {
+                                            const rec = allRecords[nextIndex];
+                                            const n = parseInt(rec.roll != null ? rec.roll : rec.number);
+                                            if (n !== 0) {
+                                                let nextCode, nextText, nextClass;
+
+                                                if (botStrategy === 'pattern_even_odd') {
+                                                    const isOdd = n % 2 !== 0;
+                                                    nextCode = isOdd ? 'odd' : 'even';
+                                                    nextText = isOdd ? 'ÍMPAR 🔵' : 'PAR 🟣';
+                                                    nextClass = isOdd ? 'prediction-red' : 'prediction-black';
+                                                } else {
+                                                    const isRed = n >= 1 && n <= 7;
+                                                    nextCode = isRed ? 'red' : 'black';
+                                                    nextText = isRed ? 'VERMELHO 🔴' : 'PRETO ⚫';
+                                                    nextClass = isRed ? 'prediction-red' : 'prediction-black';
+                                                }
+                                                
+                                                currentBotPrediction = nextCode;
+                                                currentBaseIndex = nextIndex;
+                                                
+                                                const botPrediction = document.getElementById('bot-prediction');
+                                                botPrediction.textContent = `${nextText} (Gale ${currentGaleCount})`;
+                                                botPrediction.className = `prediction-value ${nextClass}`;
+                                                renderGaleTree(currentBaseIndex);
+                                                currentGaleSequence.push({gale: currentGaleCount, color: currentBotPrediction});
+                                                
+                                                foundNext = true;
+                                                break;
+                                            }
+                                            nextIndex--;
+                                        }
+                                    }
+                                } else {
+                                    // Gale Fixo: Mantém a cor, apenas atualiza o texto
+                                    const botPrediction = document.getElementById('bot-prediction');
+                                    let colorText = '';
+                                    if (botStrategy === 'pattern_even_odd') {
+                                        colorText = currentBotPrediction === 'odd' ? 'ÍMPAR 🔵' : 'PAR 🟣';
+                                    } else {
+                                        colorText = currentBotPrediction === 'red' ? 'VERMELHO 🔴' : 'PRETO ⚫';
+                                    }
+                                    botPrediction.textContent = `${colorText} (Gale ${currentGaleCount})`;
+                                    currentGaleSequence.push({gale: currentGaleCount, color: currentBotPrediction});
+                                }
+                            } else {
+                                lossCount++;
+
+                                // Lógica de Alternância (A cada X Losses)
+                                if (botPatternAlternateLossMode && botStrategy === 'pattern') {
+                                    lossesSinceAlternation++;
+                                    if (lossesSinceAlternation >= botPatternAlternateLossCount) {
+                                        lossesSinceAlternation = 0;
+                                        if (botPatternMajorityMode) {
+                                            botPatternMajorityMode = false;
+                                            botPatternMinorityMode = true;
+                                        } else {
+                                            botPatternMajorityMode = true;
+                                            botPatternMinorityMode = false;
+                                        }
+                                        const majCb = document.getElementById('pattern-majority-mode');
+                                        const minCb = document.getElementById('pattern-minority-mode');
+                                        if (majCb) majCb.checked = botPatternMajorityMode;
+                                        if (minCb) minCb.checked = botPatternMinorityMode;
+                                        localStorage.setItem('bot_pattern_majority', botPatternMajorityMode);
+                                        localStorage.setItem('bot_pattern_minority', botPatternMinorityMode);
+
+                                        const altLabel = document.querySelector('label[for="pattern-alternate-loss-mode"]');
+                                        if (altLabel) {
+                                            altLabel.classList.add('blink-effect');
+                                            setTimeout(() => altLabel.classList.remove('blink-effect'), 2000);
+                                        }
+                                    }
+                                }
+
+                                addGaleLog(currentGaleSequence, 'LOSS', actualResult);
+                                currentBotPrediction = null; // Reseta após derrota total
+                                currentGaleCount = 0;
+                                currentGaleSequence = [];
+                                document.getElementById('loss-count').textContent = lossCount;
+                                localStorage.setItem('bot_stats', JSON.stringify({ win: winCount, loss: lossCount }));
+                            }
+                        }
+                    }
+                    
+                    // Lógica Win/Loss Bot Branco
+                    if (isNewRecord && currentWhiteBetting) {
+                        const num = parseInt(latestRecord.roll != null ? latestRecord.roll : latestRecord.number);
+                        if (num === 0) {
+                            // WIN BRANCO
+                            whiteWinCount++;
+                            lastWonWhiteSignalId = currentWhiteSignalId;
+                            document.getElementById('white-win-count').textContent = whiteWinCount;
+                            currentWhiteBetting = false;
+                            currentWhiteGaleCount = 0;
+                            document.getElementById('white-bot-prediction').textContent = "WIN BRANCO! ⚪";
+                            localStorage.setItem('white_bot_stats', JSON.stringify({ win: whiteWinCount, loss: whiteLossCount }));
+                        } else {
+                            if (currentWhiteGaleCount < whiteMaxGale) {
+                                currentWhiteGaleCount++;
+                            } else {
+                                whiteLossCount++;
+                                document.getElementById('white-loss-count').textContent = whiteLossCount;
+                                currentWhiteBetting = false;
+                                currentWhiteGaleCount = 0;
+                                document.getElementById('white-bot-prediction').textContent = "LOSS";
+                                localStorage.setItem('white_bot_stats', JSON.stringify({ win: whiteWinCount, loss: whiteLossCount }));
+                            }
+                        }
+                    }
+
+                    lastProcessedId = latestRecord.id;
+
+                    const last15 = data.records.slice(0, 15).reverse();
+                    currentLiveRecords = data.records;
+                    renderLiveResults(last15);
+                    
+                    if (data.records.length > 0) {
+                        const newTime = new Date(data.records[0].created_at);
+                        if (!lastLiveTime || newTime.getTime() !== lastLiveTime.getTime()) {
+                            lastLiveTime = newTime;
+                            updateComparisonSection();
+                        }
+                        
+                        // Atualiza lista completa de hoje
+                        const newRecs = data.records;
+                        const existingIds = new Set(todayRecords.map(r => r.id));
+                        const toAdd = newRecs.filter(r => !existingIds.has(r.id));
+                        if(toAdd.length > 0) {
+                            todayRecords = [...toAdd, ...todayRecords];
+                            todayRecords.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                            
+                            // Calcula o placar anterior com base no histórico completo (00:00 -> Agora)
+                            if(isTodayHistoryLoaded) {
+                                calculateHistoryStats(todayRecords);
+                                calculateAdvancedStats(todayRecords);
+                            }
+                        }
+                    }
+                }
+            } catch (e) { console.error('Erro live:', e); }
+        }
+
+        function renderGaleTree(baseIndex) {
+            const container = document.getElementById('gale-tree-container');
+            const stepsContainer = document.getElementById('gale-tree-steps');
+            
+            if (botGaleMode !== 'dynamic' || baseIndex === null || currentBotPrediction === null) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+            stepsContainer.innerHTML = '';
+
+            let tempIndex = baseIndex;
+            // Mostra a entrada atual + próximos passos do gale
+            const remainingGales = maxGale - currentGaleCount;
+            
+            for (let i = 0; i <= remainingGales; i++) {
+                let colorClass = '';
+                let label = i === 0 ? (currentGaleCount === 0 ? 'E' : 'G'+currentGaleCount) : 'G'+(currentGaleCount+i);
+                
+                let foundIndex = -1;
+
+                if (i === 0) {
+                     foundIndex = tempIndex;
+                } else {
+                    let nextIndex = tempIndex - 1;
+                    while (nextIndex >= 0) {
+                        const rec = allRecords[nextIndex];
+                        const n = parseInt(rec.roll != null ? rec.roll : rec.number);
+                        if (n !== 0) { foundIndex = nextIndex; break; }
+                        nextIndex--;
+                    }
+                }
+
+                if (foundIndex !== -1) {
+                    tempIndex = foundIndex;
+                    const rec = allRecords[foundIndex];
+                    const n = parseInt(rec.roll != null ? rec.roll : rec.number);
+                    
+                    if (botStrategy === 'pattern_even_odd') {
+                        // Reutiliza classes visuais: Ímpar = Red style, Par = Black style
+                        if (n !== 0) colorClass = (n % 2 !== 0) ? 'tree-red' : 'tree-black';
+                    } else {
+                        if (n >= 1 && n <= 7) colorClass = 'tree-red';
+                        else if (n >= 8 && n <= 14) colorClass = 'tree-black';
+                    }
+                    
+                    const step = document.createElement('div');
+                    step.className = `tree-step ${colorClass}`;
+                    if (i === 0) step.classList.add('active');
+                    step.textContent = label;
+                    stepsContainer.appendChild(step);
+                } else {
+                    break; // Fim do histórico
+                }
+            }
+        }
+
+        function addGaleLog(sequence, result, actualColor) {
+            const logsContainer = document.getElementById('gale-logs');
+            if (!logsContainer) return;
+            
+            const entry = document.createElement('div');
+            entry.className = 'gale-log-entry';
+            
+            const time = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+            
+            let pathHtml = sequence.map((s, index) => {
+                let colorIcon, style;
+                if (s.color === 'odd') { colorIcon = '🔵'; style = 'color:#f12c4c'; }
+                else if (s.color === 'even') { colorIcon = '🟣'; style = 'color:#fff'; }
+                else if (s.color === 'red') { colorIcon = '🔴'; style = 'color:#f12c4c'; }
+                else if (s.color === 'black') { colorIcon = '⚫'; style = 'color:#fff'; }
+                else { colorIcon = '⚪'; style = 'color:#00f2ff'; }
+
+                return `<span class="log-step" style="${style}">G${s.gale}${colorIcon}</span>` + 
+                       (index < sequence.length - 1 ? '<span class="log-arrow">→</span>' : '');
+            }).join('');
+
+            const resultColor = result === 'WIN' ? '#00ff88' : '#ff0044';
+            
+            entry.innerHTML = `<span style="color:#666">${time}</span><span class="gale-log-path">${pathHtml}</span><span style="color:${resultColor}; font-weight:bold;">${result}</span>`;
+            
+            logsContainer.prepend(entry);
+            
+            if (logsContainer.children.length > 5) logsContainer.removeChild(logsContainer.lastChild);
+
+            // Update Side Panel
+            const sideList = document.getElementById('side-history-list');
+            if (sideList) {
+                const item = document.createElement('div');
+                const isWin = result === 'WIN';
+                item.className = `side-hist-item ${isWin ? 'win' : 'loss'}`;
+                const lastStep = sequence[sequence.length - 1];
+                const galeCount = lastStep ? lastStep.gale : 0;
+                const galeLabel = galeCount === 0 ? 'Direto' : `Gale ${galeCount}`;
+                
+                let iconHtml = '';
+                if (actualColor) {
+                    let bg = '#ccc';
+                    let border = 'none';
+                    let radius = '2px';
+                    if (actualColor === 'red') bg = '#f12c4c';
+                    else if (actualColor === 'black') { bg = '#222'; border = '1px solid #666'; }
+                    else if (actualColor === 'white') { bg = '#ffffff'; border = '1px solid #00f2ff'; }
+                    else if (actualColor === 'odd') { bg = '#f12c4c'; radius = '50%'; }
+                    else if (actualColor === 'even') { bg = '#222'; border = '1px solid #666'; radius = '50%'; }
+                    iconHtml = `<span style="display:inline-block;width:10px;height:10px;background:${bg};border:${border};border-radius:${radius};margin-right:5px;"></span>`;
+                }
+
+                item.innerHTML = `<div class="side-hist-info"><span class="side-hist-time">${time}</span><span class="side-hist-gale">${galeLabel}</span></div><div class="side-hist-result ${isWin ? 'win' : 'loss'}">${iconHtml}${result}</div>`;
+                sideList.prepend(item);
+                while (sideList.children.length > 40) {
+                    sideList.removeChild(sideList.lastChild);
+                }
+                const countEl = document.getElementById('side-total-count');
+                if(countEl) countEl.textContent = sideList.children.length;
+                
+                // Salvar no LocalStorage
+                saveSideHistory({
+                    time: time,
+                    galeLabel: galeLabel,
+                    result: result,
+                    isWin: isWin,
+                    actualColor: actualColor
+                });
+            }
+        }
+
+        function saveSideHistory(item) {
+            let history = JSON.parse(localStorage.getItem('bot_side_history') || '[]');
+            history.unshift(item);
+            if (history.length > 100) history = history.slice(0, 100); // Limite de 100 itens
+            localStorage.setItem('bot_side_history', JSON.stringify(history));
+        }
+
+        function loadSideHistory() {
+            const history = JSON.parse(localStorage.getItem('bot_side_history') || '[]');
+            const sideList = document.getElementById('side-history-list');
+            const countEl = document.getElementById('side-total-count');
+            
+            if (sideList) {
+                sideList.innerHTML = '';
+                history.slice(0, 40).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = `side-hist-item ${item.isWin ? 'win' : 'loss'}`;
+                    
+                    let iconHtml = '';
+                    if (item.actualColor) {
+                        let bg = '#ccc';
+                        let border = 'none';
+                        let radius = '2px';
+                        const c = item.actualColor;
+                        if (c === 'red') bg = '#f12c4c';
+                        else if (c === 'black') { bg = '#222'; border = '1px solid #666'; }
+                        else if (c === 'white') { bg = '#ffffff'; border = '1px solid #00f2ff'; }
+                        else if (c === 'odd') { bg = '#f12c4c'; radius = '50%'; }
+                        else if (c === 'even') { bg = '#222'; border = '1px solid #666'; radius = '50%'; }
+                        iconHtml = `<span style="display:inline-block;width:10px;height:10px;background:${bg};border:${border};border-radius:${radius};margin-right:5px;"></span>`;
+                    }
+
+                    div.innerHTML = `<div class="side-hist-info"><span class="side-hist-time">${item.time}</span><span class="side-hist-gale">${item.galeLabel}</span></div><div class="side-hist-result ${item.isWin ? 'win' : 'loss'}">${iconHtml}${item.result}</div>`;
+                    sideList.appendChild(div);
+                });
+                if (countEl) countEl.textContent = history.length;
+            }
+        }
+
+        function highlightPatternInMainList(ids) {
+            virtualScroller.highlightIds.clear();
+            if (ids && ids.length > 0) {
+                ids.forEach(id => virtualScroller.highlightIds.add(id));
+            }
+            renderVirtualItems();
+        }
+
+        function togglePatternOptions(show) {
+            const container = document.getElementById('pattern-length-container');
+            if(container) container.style.display = show ? 'block' : 'none';
+            const evenOddOpts = document.getElementById('even-odd-specific-options');
+            if(evenOddOpts) evenOddOpts.style.display = (show && botStrategy === 'pattern_even_odd') ? 'block' : 'none';
+        }
+
+        function updateComparisonSection() {
+            if (allRecords.length === 0) return;
+
+            // 1. Pega o horário da última pedra que saiu ao vivo hoje
+            const referenceTime = lastLiveTime || new Date();
+            
+            // 2. Cria um objeto Date para "Ontem" mas com o horário de "Hoje"
+            const targetTime = new Date(currentStartDate); 
+            targetTime.setHours(referenceTime.getHours(), referenceTime.getMinutes(), referenceTime.getSeconds());
+
+            let closestRecord = null;
+            let minDiff = Infinity;
+            let closestIndex = -1;
+
+            // 3. Percorre o histórico de ontem para achar a pedra mais próxima desse horário
+            allRecords.forEach((record, index) => {
+                const recordTime = new Date(record.created_at);
+                // Calcula a diferença absoluta em milissegundos
+                const diff = Math.abs(recordTime - targetTime);
+                
+                // Se essa diferença for menor que a menor encontrada até agora, atualiza
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestRecord = record;
+                    closestIndex = index;
+                }
+            });
+
+            if (closestRecord && closestIndex !== -1) {
+                // Lógica visual para destacar a pedra exata (current-time-marker)
+                const el = document.getElementById(`record-${closestRecord.id}`);
+                if (el) {
+                    document.querySelectorAll('.current-time-marker').forEach(e => e.classList.remove('current-time-marker'));
+                    el.classList.add('current-time-marker');
+                }
+
+                // 4. Recorta 15 posições para trás e 15 para frente no array
+                // Math.max e Math.min evitam erros se estivermos no começo ou fim do array
+                const start = Math.max(0, closestIndex - 15);
+                const end = Math.min(allRecords.length, closestIndex + 15);
+                
+                // Cria a lista de 30 pedras
+                const slice = allRecords.slice(start, end);
+                
+                // Envia para renderização na tela
+                renderComparisonResults(slice, closestRecord.id);
+                document.getElementById('comparison-container').style.display = 'block';
+
+                // ... (restante do código segue para a lógica dos Bots)
+                let patternIdsToHighlight = [];
+                let predictionIndex = -1;
+
+                // Lógica do Bot
+                const botContainer = document.getElementById('bot-container');
+                const botPrediction = document.getElementById('bot-prediction');
+                const botConfidence = document.getElementById('bot-confidence');
+                const patternCountDisplay = document.getElementById('pattern-count-display');
+                
+                if (patternCountDisplay) patternCountDisplay.style.display = 'none';
+                
+                // Se já existe uma previsão ativa (estamos em Gale), não muda a entrada
+                if (currentBotPrediction !== null) return;
+                
+                if (botStrategy === 'pattern' || botStrategy === 'pattern_even_odd') {
+                    // Estratégia de Padrões Dinâmicos
+                    if (currentLiveRecords && currentLiveRecords.length >= botPatternLength) {
+                        const getValue = (rec) => {
+                            const n = parseInt(rec.roll != null ? rec.roll : rec.number);
+                            if (n === 0) return 0; // White
+                            if (botStrategy === 'pattern_even_odd') {
+                                return (n % 2 !== 0) ? 1 : 2; // 1=Odd, 2=Even
+                            }
+                            // Pattern Color
+                            if (n >= 1 && n <= 7) return 1; // Red
+                            return 2; // Black
+                        };
+
+                        // Pega o padrão atual ao vivo
+                        const currentPattern = [];
+                        let patternHasWhite = false;
+                        for(let i=0; i<botPatternLength; i++) {
+                            const c = getValue(currentLiveRecords[i]);
+                            if (c === 0) patternHasWhite = true;
+                            currentPattern.push(c);
+                        }
+
+                        // Filtros de Padrão Fixo (Par/Ímpar)
+                        if (botStrategy === 'pattern_even_odd') {
+                            if (botPatternFixedEven && currentPattern.some(v => v === 1)) {
+                                botPrediction.textContent = "Aguardando Padrão PAR...";
+                                return; 
+                            }
+                            if (botPatternFixedOdd && currentPattern.some(v => v === 2)) {
+                                botPrediction.textContent = "Aguardando Padrão ÍMPAR...";
+                                return;
+                            }
+                        }
+
+                        // Se a opção de ignorar brancos estiver ativa e o padrão tiver branco, pula a busca
+                        if (!botPatternIgnoreWhite || !patternHasWhite) {
+                            // Procura o padrão no histórico (do mais recente para o mais antigo)
+                            let totalPatternsFound = 0;
+                            let countRed = 0;
+                            let countBlack = 0;
+                            let firstMatchIndex = -1;
+
+                            if (botPatternMajorityMode || botPatternMinorityMode) {
+                                // --- MODO MAIORIA/MINORIA (Analisa TODOS os padrões) ---
+                                for (let i = 1; i < allRecords.length - botPatternLength; i++) {
+                                    let match = true;
+                                    let tempIds = [];
+                                    for(let j=0; j<botPatternLength; j++) {
+                                        if (getValue(allRecords[i+j]) !== currentPattern[j]) {
+                                            match = false;
+                                            break;
+                                        }
+                                        tempIds.push(allRecords[i+j].id);
+                                    }
+                                    
+                                    if (match) {
+                                        totalPatternsFound++;
+                                        if (firstMatchIndex === -1) firstMatchIndex = i;
+                                        patternIdsToHighlight.push(...tempIds); // Adiciona TODOS os IDs para destaque
+                                        
+                                        // Verifica o resultado (pedra anterior ao padrão, índice i-1)
+                                        const resRec = allRecords[i-1];
+                                        const resColor = getValue(resRec);
+                                        if (resColor === 1) countRed++;
+                                        else if (resColor === 2) countBlack++;
+                                    }
+                                }
+
+                                // Define a entrada baseada na maioria ou minoria
+                                let targetColor = 0;
+                                if (botPatternMajorityMode) {
+                                    if (countRed > countBlack) targetColor = 1;
+                                    else if (countBlack > countRed) targetColor = 2;
+                                } else if (botPatternMinorityMode) {
+                                    // Minoria: escolhe a cor que saiu menos, desde que tenha saído pelo menos uma vez
+                                    // (Necessário para ter um registro histórico para apontar)
+                                    if (countRed < countBlack && countRed > 0) targetColor = 1;
+                                    else if (countBlack < countRed && countBlack > 0) targetColor = 2;
+                                }
+
+                                if (targetColor !== 0) {
+                                    // Encontra o registro mais recente que corresponde à cor alvo para definir predictionIndex
+                                    // Isso garante que o bot mostre a cor correta e o gale dinâmico tenha um ponto de partida válido
+                                    for (let i = 1; i < allRecords.length - botPatternLength; i++) {
+                                        // Re-verifica match para encontrar o índice correto
+                                        let match = true;
+                                        for(let j=0; j<botPatternLength; j++) {
+                                            if (getValue(allRecords[i+j]) !== currentPattern[j]) { match = false; break; }
+                                        }
+                                        if (match) {
+                                            const resColor = getValue(allRecords[i-1]);
+                                            if (resColor === targetColor) {
+                                                predictionIndex = i - 1;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    // Se não achou exato (raro), usa o primeiro match como fallback
+                                    if (predictionIndex === -1 && firstMatchIndex !== -1) {
+                                        predictionIndex = firstMatchIndex - 1;
+                                    }
+                                }
+
+                            } else {
+                                // --- MODO PADRÃO (Apenas o mais recente) ---
+                                // Agora percorremos tudo para contar, mas só usamos o primeiro para previsão
+                                for (let i = 1; i < allRecords.length - botPatternLength; i++) {
+                                    let match = true;
+                                    let tempIds = [];
+                                    for(let j=0; j<botPatternLength; j++) {
+                                        if (getValue(allRecords[i+j]) !== currentPattern[j]) {
+                                            match = false;
+                                            break;
+                                        }
+                                        tempIds.push(allRecords[i+j].id);
+                                    }
+                                    
+                                    if (match) {
+                                        totalPatternsFound++;
+                                        if (totalPatternsFound === 1) {
+                                            predictionIndex = i - 1;
+                                            patternIdsToHighlight = tempIds; // IDs para destacar (apenas o primeiro)
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (patternCountDisplay && totalPatternsFound > 0) {
+                                patternCountDisplay.textContent = `${totalPatternsFound} Padrões Encontrados`;
+                                patternCountDisplay.style.display = 'block';
+                            }
+                        }
+                    }
+                } else {
+                    // Estratégia Temporal (Padrão)
+                    predictionIndex = closestIndex - 1;
+                }
+
+                // Destaca o padrão na lista principal (Histórico Dia Anterior)
+                highlightPatternInMainList(patternIdsToHighlight);
+
+                // Busca a próxima pedra válida (não branca) se necessário
+                // Se a estratégia for padrão, e o resultado for branco, o loop abaixo vai pular o branco
+                // e pegar a próxima cor. Isso atende "jogando na cor que sai", pulando brancos se for a regra geral do bot.
+                let num = 0;
+                while (predictionIndex >= 0) {
+                    const predRecord = allRecords[predictionIndex];
+                    num = parseInt(predRecord.roll != null ? predRecord.roll : predRecord.number);
+                    if (num !== 0) break;
+                    predictionIndex--;
+                }
+                
+                if (predictionIndex >= 0) {
+                    currentBaseIndex = predictionIndex;
+                    
+                    let colorText = 'BRANCO ⚪';
+                    let colorClass = 'prediction-white';
+                    let predColorCode = 'white';
+                    
+                    if (botStrategy === 'pattern_even_odd') {
+                        if (num !== 0) {
+                            let isOdd = num % 2 !== 0;
+                            if (botPatternEvenOddInvert) isOdd = !isOdd; // Inverte a lógica se ativado
+                            colorText = isOdd ? 'ÍMPAR 🔵' : 'PAR 🟣';
+                            colorClass = isOdd ? 'prediction-red' : 'prediction-black';
+                            predColorCode = isOdd ? 'odd' : 'even';
+                        }
+                    } else {
+                        if (num >= 1 && num <= 7) { colorText = 'VERMELHO 🔴'; colorClass = 'prediction-red'; predColorCode = 'red'; }
+                        else if (num >= 8 && num <= 14) { colorText = 'PRETO ⚫'; colorClass = 'prediction-black'; predColorCode = 'black'; }
+                    }
+                    
+                    botPrediction.textContent = colorText;
+                    botPrediction.className = `prediction-value ${colorClass}`;
+                    currentBotPrediction = predColorCode;
+                    currentGaleSequence = [{gale: 0, color: predColorCode}];
+                    botContainer.style.display = 'block';
+                    renderGaleTree(currentBaseIndex);
+                    // Simula uma confiança baseada na análise
+                    botConfidence.style.width = '92%';
+                }
+                
+                // --- Lógica Bot Branco ---
+                const whitePredictionEl = document.getElementById('white-bot-prediction');
+                const whiteDistanceEl = document.getElementById('white-distance-display');
+                
+                // Se já estamos apostando, não buscamos nova entrada até finalizar
+                if (!currentWhiteBetting) {
+                    if (botWhiteStrategy === 'proximity') {
+                        // ESTRATÉGIA PADRÃO: Proximidade
+                        // Procura um branco nos próximos 20 registros do histórico (índices menores que closestIndex)
+                        let foundWhiteDist = -1;
+                        for(let i = 1; i <= 20; i++) {
+                            const idx = closestIndex - i;
+                            if(idx >= 0) {
+                                const rec = allRecords[idx];
+                                const n = parseInt(rec.roll != null ? rec.roll : rec.number);
+                                if(n === 0) {
+                                    foundWhiteDist = i;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(foundWhiteDist !== -1) {
+                            const wRec = allRecords[closestIndex - foundWhiteDist];
+                            currentWhiteSignalId = wRec.id;
+
+                            whiteDistanceEl.textContent = `${foundWhiteDist} rodadas`;
+                            // Se o branco estiver muito próximo (ex: até whiteMaxGale), sugere entrada
+                            if(foundWhiteDist <= whiteMaxGale) {
+                                if (botWhiteStopOnWin && currentWhiteSignalId === lastWonWhiteSignalId) {
+                                    whitePredictionEl.textContent = "STOP WIN ATIVO ⛔";
+                                    whitePredictionEl.className = "prediction-value";
+                                } else {
+                                    const wTime = new Date(wRec.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                                    whitePredictionEl.textContent = `ENTRADA BRANCO ⚪ ${wTime}`;
+                                    whitePredictionEl.className = "prediction-value prediction-white";
+                                    currentWhiteBetting = true; // Ativa modo aposta
+                                }
+                            } else {
+                                whitePredictionEl.textContent = "Observando...";
+                                whitePredictionEl.className = "prediction-value";
+                            }
+                        } else {
+                            whiteDistanceEl.textContent = "Não detectado";
+                            whitePredictionEl.textContent = "Aguardando Padrão";
+                            whitePredictionEl.className = "prediction-value";
+                        }
+                    } else if (botWhiteStrategy === 'anticipate') {
+                        // ESTRATÉGIA NOVA: Antecipação Personalizada
+                        // Verifica se existe um branco exatamente X casas à frente (no futuro do histórico)
+                        const targetIdx = closestIndex - botWhiteAnticipateDistance;
+                        let isTargetWhite = false;
+                        let isValidTarget = false;
+                        
+                        if (targetIdx >= 0) {
+                            const rec = allRecords[targetIdx];
+                            currentWhiteSignalId = rec.id;
+                            const n = parseInt(rec.roll != null ? rec.roll : rec.number);
+                            if (n === 0) isTargetWhite = true;
+                            isValidTarget = true;
+                        }
+
+                        let trigger = false;
+                        if (isValidTarget) {
+                            if (botWhiteAnticipateInvert) {
+                                if (!isTargetWhite) trigger = true;
+                            } else {
+                                if (isTargetWhite) trigger = true;
+                            }
+                        }
+
+                        if (trigger) {
+                            if (botWhiteStopOnWin && currentWhiteSignalId === lastWonWhiteSignalId) {
+                                whitePredictionEl.textContent = "STOP WIN ATIVO ⛔";
+                                whitePredictionEl.className = "prediction-value";
+                            } else {
+                                whiteDistanceEl.textContent = botWhiteAnticipateInvert ? `ALVO: !${botWhiteAnticipateDistance} 🎯` : `ALVO: ${botWhiteAnticipateDistance} 🎯`;
+                                whitePredictionEl.textContent = botWhiteAnticipateInvert ? `ENTRADA (INV) ⚪` : `ENTRADA ${botWhiteAnticipateDistance} ANTES ⚪`;
+                                whitePredictionEl.className = "prediction-value prediction-white";
+                                currentWhiteBetting = true;
+                            }
+                        } else {
+                            // Busca informativa do próximo branco para mostrar distância
+                            let nextWhiteDist = -1;
+                            for(let i = 1; i <= 30; i++) {
+                                const idx = closestIndex - i;
+                                if(idx >= 0 && parseInt(allRecords[idx].roll || allRecords[idx].number) === 0) {
+                                    nextWhiteDist = i;
+                                    break;
+                                }
+                            }
+                            whiteDistanceEl.textContent = nextWhiteDist !== -1 ? `Próximo em: ${nextWhiteDist}` : "Buscando...";
+                            whitePredictionEl.textContent = `Aguardando ${botWhiteAnticipateDistance}...`;
+                            whitePredictionEl.className = "prediction-value";
+                        }
+                    }
+                } else {
+                    whitePredictionEl.textContent = `GALE ${currentWhiteGaleCount}/${whiteMaxGale} ⚪`;
+                }
+            }
+        }
+
+        // Função para calcular Win/Loss no histórico recente (Backtest)
+        function calculateHistoryStats(liveRecords) {
+            if (!allRecords || allRecords.length === 0 || !liveRecords || liveRecords.length === 0) return;
+
+            // Garante que o mapa de tempo existe para busca rápida
+            if (allRecordsTimeMap.size === 0) {
+                buildAllRecordsTimeMap();
+            }
+
+            // Ordena do mais antigo para o mais novo para simular a sequência correta
+            const sortedLive = [...liveRecords].reverse();
+            
+            // --- Bot Temporal ---
+            let tWin = 0;
+            let tLoss = 0;
+            let tSkip = 0; // Pular rodadas devido ao Gale
+            let startIndex = 0;
+
+            // Tenta recuperar do cache (Memorização)
+            if (historyStatsCache.count > 0 && historyStatsCache.count <= sortedLive.length) {
+                const lastProcessed = sortedLive[historyStatsCache.count - 1];
+                // Verifica se o histórico continua consistente
+                if (lastProcessed && lastProcessed.id === historyStatsCache.lastId) {
+                    tWin = historyStatsCache.win;
+                    tLoss = historyStatsCache.loss;
+                    tSkip = historyStatsCache.skip;
+                    startIndex = historyStatsCache.count; // Continua de onde parou
+                } else {
+                    resetHistoryStatsCache(); // Inconsistência detectada, recalcula tudo
+                }
+            }
+
+            for (let i = startIndex; i < sortedLive.length; i++) {
+                if (tSkip > 0) { tSkip--; continue; }
+
+                const currentRec = sortedLive[i];
+                const currentTime = new Date(currentRec.created_at);
+                
+                // Encontrar correspondência no dia anterior
+                const targetTime = new Date(currentStartDate);
+                targetTime.setHours(currentTime.getHours() - 1, currentTime.getMinutes(), currentTime.getSeconds());
+                
+                // Busca Otimizada (O(1)) usando o Mapa de Tempo
+                let matchIdx = -1;
+                const timeKey = `${targetTime.getHours()}:${targetTime.getMinutes()}`;
+                if (allRecordsTimeMap.has(timeKey)) {
+                    matchIdx = allRecordsTimeMap.get(timeKey);
+                }
+
+                if (matchIdx !== -1 && matchIdx > 0) {
+                    // Previsão é o índice anterior (futuro no passado)
+                    // Busca próxima não branca
+                    let pIdx = matchIdx - 1;
+                    let predNum = 0;
+                    while (pIdx >= 0) {
+                        const r = allRecords[pIdx];
+                        predNum = parseInt(r.roll != null ? r.roll : r.number);
+                        if (predNum !== 0) break;
+                        pIdx--;
+                    }
+                    
+                    if (pIdx >= 0 && predNum !== 0) {
+                        let predColor = (predNum >= 1 && predNum <= 7) ? 'red' : 'black';
+                        
+                        // Verifica resultado (com Gale)
+                        let win = false;
+                        let galeUsed = 0;
+                        
+                        for (let g = 0; g <= maxGale; g++) {
+                            if (i + 1 + g < sortedLive.length) {
+                                const checkRec = sortedLive[i + 1 + g];
+                                const checkNum = parseInt(checkRec.roll != null ? checkRec.roll : checkRec.number);
+                                let checkColor = 'white';
+                                if (checkNum >= 1 && checkNum <= 7) checkColor = 'red';
+                                else if (checkNum >= 8 && checkNum <= 14) checkColor = 'black';
+                                
+                                if (checkColor === predColor || checkColor === 'white') {
+                                    win = true;
+                                    galeUsed = g;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (i + 1 < sortedLive.length) {
+                            if (win) { tWin++; tSkip = galeUsed; }
+                            else { tLoss++; tSkip = maxGale; }
+                        }
+                    }
+                }
+            }
+            document.getElementById('hist-win-count').textContent = tWin;
+            document.getElementById('hist-loss-count').textContent = tLoss;
+            
+            // Atualiza a memória do cache Temporal
+            historyStatsCache = {
+                count: sortedLive.length,
+                win: tWin,
+                loss: tLoss,
+                skip: tSkip,
+                lastId: sortedLive.length > 0 ? sortedLive[sortedLive.length - 1].id : null
+            };
+
+            // --- Bot Branco ---
+            let wWin = 0;
+            let wLoss = 0;
+            let wSkip = 0;
+            let lastWonId = null;
+            let wStartIndex = 0;
+
+            // Tenta recuperar do cache Branco
+            if (historyWhiteStatsCache.count > 0 && historyWhiteStatsCache.count <= sortedLive.length) {
+                const lastProcessed = sortedLive[historyWhiteStatsCache.count - 1];
+                if (lastProcessed && lastProcessed.id === historyWhiteStatsCache.lastId) {
+                    wWin = historyWhiteStatsCache.win;
+                    wLoss = historyWhiteStatsCache.loss;
+                    wSkip = historyWhiteStatsCache.skip;
+                    lastWonId = historyWhiteStatsCache.lastWonId;
+                    wStartIndex = historyWhiteStatsCache.count;
+                }
+            }
+
+            for (let i = wStartIndex; i < sortedLive.length; i++) {
+                if (wSkip > 0) { wSkip--; continue; }
+
+                const currentRec = sortedLive[i];
+                const currentTime = new Date(currentRec.created_at);
+                const targetTime = new Date(currentStartDate);
+                targetTime.setHours(currentTime.getHours() - 1, currentTime.getMinutes(), currentTime.getSeconds());
+
+                // Busca Otimizada Branco
+                let matchIdx = -1;
+                const timeKey = `${targetTime.getHours()}:${targetTime.getMinutes()}`;
+                if (allRecordsTimeMap.has(timeKey)) {
+                    matchIdx = allRecordsTimeMap.get(timeKey);
+                }
+
+                if (matchIdx !== -1) {
+                    let shouldBet = false;
+                    let signalId = null;
+
+                    if (botWhiteStrategy === 'proximity') {
+                        if (matchIdx > 20) {
+                            let foundWhite = false;
+                            for (let dist = 1; dist <= whiteMaxGale; dist++) {
+                                const idx = matchIdx - dist;
+                                if (idx >= 0 && idx < allRecords.length) {
+                                    const pRec = allRecords[idx];
+                                    if (pRec && (parseInt(pRec.roll || pRec.number) === 0)) { 
+                                        foundWhite = true; 
+                                        signalId = pRec.id;
+                                        break; 
+                                    }
+                                }
+                            }
+                            if (foundWhite) shouldBet = true;
+                        }
+                    } else if (botWhiteStrategy === 'anticipate') {
+                        const targetIdx = matchIdx - botWhiteAnticipateDistance;
+                        if (targetIdx >= 0 && targetIdx < allRecords.length) {
+                            const rec = allRecords[targetIdx];
+                            signalId = rec.id;
+                            const isTargetWhite = (parseInt(rec.roll || rec.number) === 0);
+                            
+                            if (botWhiteAnticipateInvert) {
+                                if (!isTargetWhite) shouldBet = true;
+                            } else {
+                                if (isTargetWhite) shouldBet = true;
+                            }
+                        }
+                    }
+
+                    if (botWhiteStopOnWin && signalId && signalId === lastWonId) {
+                        shouldBet = false;
+                    }
+
+                    if (shouldBet) {
+                        // Verifica se saiu branco hoje dentro do Gale
+                        let win = false;
+                        let galeUsed = 0;
+                        for (let g = 0; g <= whiteMaxGale; g++) {
+                            if (i + 1 + g < sortedLive.length) {
+                                const checkRec = sortedLive[i + 1 + g];
+                                if (parseInt(checkRec.roll || checkRec.number) === 0) {
+                                    win = true;
+                                    galeUsed = g;
+                                    break;
+                                }
+                            }
+                        }
+                        if (i + 1 < sortedLive.length) {
+                            if (win) { 
+                                wWin++; 
+                                wSkip = galeUsed; 
+                                if (signalId) lastWonId = signalId;
+                            }
+                            else { wLoss++; wSkip = whiteMaxGale; }
+                        }
+                    }
+                }
+            }
+            document.getElementById('hist-white-win-count').textContent = wWin;
+            document.getElementById('hist-white-loss-count').textContent = wLoss;
+            
+            // Atualiza a memória do cache Branco
+            historyWhiteStatsCache = {
+                count: sortedLive.length,
+                win: wWin,
+                loss: wLoss,
+                skip: wSkip,
+                lastId: sortedLive.length > 0 ? sortedLive[sortedLive.length - 1].id : null,
+                lastWonId: lastWonId
+            };
+        }
+
+        function calculateAdvancedStats(liveRecords) {}
+
+        // Configurações do Bot
+        const galeOptions = document.querySelectorAll('#gale-options .gale-option');
+        const resetStatsBtn = document.getElementById('reset-stats-btn');
+        const resetWhiteStatsBtn = document.getElementById('reset-white-stats-btn');
+        const strategySelector = document.getElementById('strategy-selector');
+
+        const galeModeSelector = document.getElementById('gale-mode-selector');
+        galeModeSelector.addEventListener('change', (e) => {
+            botGaleMode = e.target.value;
+            localStorage.setItem('bot_gale_mode', botGaleMode);
+            renderGaleTree(currentBaseIndex);
+        });
+        
+        // Configurações Bot Branco
+        const whiteGaleInput = document.getElementById('white-gale-input');
+        if (whiteGaleInput) {
+            whiteGaleInput.addEventListener('change', (e) => {
+                let val = parseInt(e.target.value);
+                if (isNaN(val) || val < 0) val = 0;
+                if (val > 100) val = 100;
+                whiteMaxGale = val;
+                e.target.value = val;
+                // Resetar estado se mudar config
+                currentWhiteBetting = false;
+                currentWhiteGaleCount = 0;
+                localStorage.setItem('white_bot_settings', JSON.stringify({ maxGale: whiteMaxGale }));
+                resetHistoryStatsCache(); // Config mudou, recalcula tudo
+                calculateHistoryStats(todayRecords);
+            });
+        }
+
+        const whiteStrategySelector = document.getElementById('white-strategy-selector');
+        if (whiteStrategySelector) {
+            whiteStrategySelector.addEventListener('change', (e) => {
+                botWhiteStrategy = e.target.value;
+                localStorage.setItem('white_bot_strategy', botWhiteStrategy);
+                currentWhiteBetting = false; // Reseta aposta atual ao trocar estratégia
+                toggleWhiteStrategyInputs();
+                updateComparisonSection();
+                resetHistoryStatsCache();
+                calculateHistoryStats(todayRecords);
+            });
+        }
+
+        const whiteAnticipateInput = document.getElementById('white-anticipate-distance');
+        if (whiteAnticipateInput) {
+            whiteAnticipateInput.addEventListener('change', (e) => {
+                let val = parseInt(e.target.value);
+                if (val < 1) val = 1;
+                botWhiteAnticipateDistance = val;
+                localStorage.setItem('white_bot_anticipate_distance', botWhiteAnticipateDistance);
+                updateComparisonSection();
+                resetHistoryStatsCache();
+                calculateHistoryStats(todayRecords);
+            });
+        }
+
+        const whiteAnticipateInvertCb = document.getElementById('white-anticipate-invert');
+        if (whiteAnticipateInvertCb) {
+            whiteAnticipateInvertCb.addEventListener('change', (e) => {
+                botWhiteAnticipateInvert = e.target.checked;
+                localStorage.setItem('white_bot_anticipate_invert', botWhiteAnticipateInvert);
+                updateComparisonSection();
+                resetHistoryStatsCache();
+                calculateHistoryStats(todayRecords);
+            });
+        }
+
+        const whiteStopWinCb = document.getElementById('white-stop-on-win');
+        if (whiteStopWinCb) {
+            whiteStopWinCb.addEventListener('change', (e) => {
+                botWhiteStopOnWin = e.target.checked;
+                localStorage.setItem('white_bot_stop_on_win', botWhiteStopOnWin);
+            });
+        }
+
+        function toggleWhiteStrategyInputs() {
+            const container = document.getElementById('white-anticipate-input-container');
+            if (container) {
+                container.style.display = botWhiteStrategy === 'anticipate' ? 'block' : 'none';
+            }
+        }
+
+        // Configurações Tamanho do Padrão
+        const patternLengthOptions = document.querySelectorAll('#pattern-length-options .gale-option');
+        patternLengthOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                patternLengthOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                botPatternLength = parseInt(option.getAttribute('data-value'));
+                localStorage.setItem('bot_pattern_length', botPatternLength);
+                updateComparisonSection();
+                calculateAdvancedStats(todayRecords);
+            });
+        });
+
+        const patternIgnoreWhiteCb = document.getElementById('pattern-ignore-white');
+        if (patternIgnoreWhiteCb) {
+            patternIgnoreWhiteCb.addEventListener('change', (e) => {
+                botPatternIgnoreWhite = e.target.checked;
+                localStorage.setItem('bot_pattern_ignore_white', botPatternIgnoreWhite);
+                updateComparisonSection();
+                calculateAdvancedStats(todayRecords);
+            });
+        }
+
+        const patternAlternateCb = document.getElementById('pattern-alternate-mode');
+        if (patternAlternateCb) {
+            patternAlternateCb.addEventListener('change', (e) => {
+                botPatternAlternateMode = e.target.checked;
+                localStorage.setItem('bot_pattern_alternate', botPatternAlternateMode);
+                winsSinceAlternation = 0;
+            });
+        }
+
+        const patternAlternateCountInput = document.getElementById('pattern-alternate-count');
+        if (patternAlternateCountInput) {
+            patternAlternateCountInput.addEventListener('change', (e) => {
+                let val = parseInt(e.target.value);
+                if (val < 1) val = 1;
+                botPatternAlternateCount = val;
+                localStorage.setItem('bot_pattern_alternate_count', botPatternAlternateCount);
+            });
+        }
+
+        const patternAlternateLossCb = document.getElementById('pattern-alternate-loss-mode');
+        if (patternAlternateLossCb) {
+            patternAlternateLossCb.addEventListener('change', (e) => {
+                botPatternAlternateLossMode = e.target.checked;
+                localStorage.setItem('bot_pattern_alternate_loss', botPatternAlternateLossMode);
+                lossesSinceAlternation = 0;
+            });
+        }
+
+        const patternAlternateLossCountInput = document.getElementById('pattern-alternate-loss-count');
+        if (patternAlternateLossCountInput) {
+            patternAlternateLossCountInput.addEventListener('change', (e) => {
+                let val = parseInt(e.target.value);
+                if (val < 1) val = 1;
+                botPatternAlternateLossCount = val;
+                localStorage.setItem('bot_pattern_alternate_loss_count', botPatternAlternateLossCount);
+            });
+        }
+
+        const patternAutoResizeCb = document.getElementById('pattern-auto-resize-mode');
+        if (patternAutoResizeCb) {
+            patternAutoResizeCb.addEventListener('change', (e) => {
+                botPatternAutoResizeMode = e.target.checked;
+                localStorage.setItem('bot_pattern_auto_resize', botPatternAutoResizeMode);
+                winsSinceResize = 0;
+            });
+        }
+
+        const patternAutoResizeCountInput = document.getElementById('pattern-auto-resize-count');
+        if (patternAutoResizeCountInput) {
+            patternAutoResizeCountInput.addEventListener('change', (e) => {
+                let val = parseInt(e.target.value);
+                if (val < 1) val = 1;
+                botPatternAutoResizeCount = val;
+                localStorage.setItem('bot_pattern_auto_resize_count', botPatternAutoResizeCount);
+            });
+        }
+
+        const patternMinorityCb = document.getElementById('pattern-minority-mode');
+        if (patternMinorityCb) {
+            patternMinorityCb.addEventListener('change', (e) => {
+                botPatternMinorityMode = e.target.checked;
+                if (botPatternMinorityMode) {
+                    // Desativa maioria se minoria for ativado
+                    botPatternMajorityMode = false;
+                    const majCb = document.getElementById('pattern-majority-mode');
+                    if (majCb) majCb.checked = false;
+                    localStorage.setItem('bot_pattern_majority', false);
+                }
+                localStorage.setItem('bot_pattern_minority', botPatternMinorityMode);
+                updateComparisonSection();
+                calculateAdvancedStats(todayRecords);
+            });
+        }
+
+        const patternMajorityCb = document.getElementById('pattern-majority-mode');
+        if (patternMajorityCb) {
+            patternMajorityCb.addEventListener('change', (e) => {
+                botPatternMajorityMode = e.target.checked;
+                if (botPatternMajorityMode) {
+                    // Desativa minoria se maioria for ativado
+                    botPatternMinorityMode = false;
+                    const minCb = document.getElementById('pattern-minority-mode');
+                    if (minCb) minCb.checked = false;
+                    localStorage.setItem('bot_pattern_minority', false);
+                }
+                localStorage.setItem('bot_pattern_majority', botPatternMajorityMode);
+                updateComparisonSection();
+                calculateAdvancedStats(todayRecords);
+            });
+        }
+
+        const btnFixedEven = document.getElementById('btn-pattern-even');
+        const btnFixedOdd = document.getElementById('btn-pattern-odd');
+
+        if (btnFixedEven) {
+            btnFixedEven.addEventListener('click', () => {
+                botPatternFixedEven = !botPatternFixedEven;
+                botPatternFixedOdd = false; // Mutually exclusive
+                btnFixedEven.classList.toggle('active', botPatternFixedEven);
+                btnFixedOdd.classList.remove('active');
+                localStorage.setItem('bot_pattern_fixed_even', botPatternFixedEven);
+                localStorage.setItem('bot_pattern_fixed_odd', false);
+                updateComparisonSection();
+            });
+        }
+
+        if (btnFixedOdd) {
+            btnFixedOdd.addEventListener('click', () => {
+                botPatternFixedOdd = !botPatternFixedOdd;
+                botPatternFixedEven = false;
+                btnFixedOdd.classList.toggle('active', botPatternFixedOdd);
+                btnFixedEven.classList.remove('active');
+                localStorage.setItem('bot_pattern_fixed_odd', botPatternFixedOdd);
+                localStorage.setItem('bot_pattern_fixed_even', false);
+                updateComparisonSection();
+            });
+        }
+
+        const btnPatternInvert = document.getElementById('btn-pattern-invert');
+        if (btnPatternInvert) {
+            btnPatternInvert.addEventListener('click', () => {
+                botPatternEvenOddInvert = !botPatternEvenOddInvert;
+                btnPatternInvert.classList.toggle('active', botPatternEvenOddInvert);
+                localStorage.setItem('bot_pattern_even_odd_invert', botPatternEvenOddInvert);
+                updateComparisonSection();
+            });
+        }
+
+        galeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                galeOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                maxGale = parseInt(option.getAttribute('data-value'));
+                // Resetar estado atual ao mudar configuração
+                currentBotPrediction = null;
+                currentGaleCount = 0;
+                currentBaseIndex = null;
+                currentGaleSequence = [];
+                localStorage.setItem('bot_settings', JSON.stringify({ maxGale: maxGale }));
+                resetHistoryStatsCache(); // Gale mudou, recalcula histórico
+                calculateHistoryStats(todayRecords);
+            });
+        });
+
+        function clearOldCaches(currentDateKey) {
+            try {
+                // Remove caches de outros dias para liberar espaço se necessário
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('blaze_history_') && key !== 'blaze_history_' + currentDateKey) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            } catch(e) {}
+        }
+
+        // --- Lógica de Busca Oculta (Background) ---
+        let backgroundLoading = false;
+
+        async function preloadLast20Days() {
+            if (backgroundLoading) return;
+            backgroundLoading = true;
+            console.log("🔄 Iniciando busca oculta dos últimos 20 dias...");
+
+            const today = new Date();
+            
+            // Itera de 1 a 20 dias atrás
+            for (let i = 1; i <= 20; i++) {
+                const targetDate = new Date(today);
+                targetDate.setDate(today.getDate() - i);
+                
+                const dateKey = targetDate.toISOString().split('T')[0];
+                const storageKey = 'blaze_history_' + dateKey;
+
+                // Verifica se já existe completo
+                let isCached = false;
+                try {
+                    const cached = localStorage.getItem(storageKey);
+                    if (cached) {
+                        const data = JSON.parse(cached);
+                        if (data.complete && data.records && data.records.length > 0) isCached = true;
+                    }
+                } catch(e) {}
+
+                if (!isCached) {
+                    console.log(`📥 [Background] Baixando histórico de ${dateKey}...`);
+                    await fetchBackgroundDay(targetDate, storageKey);
+                }
+                
+                await delay(2000); // Pausa entre dias para não saturar
+            }
+            console.log("✅ Busca oculta de 20 dias finalizada.");
+            backgroundLoading = false;
+        }
+
+        async function fetchBackgroundDay(date, storageKey) {
+            const startDate = new Date(date);
+            startDate.setHours(0,0,0,0);
+            const endDate = new Date(date);
+            endDate.setHours(23,59,59,999);
+            const apiEndDate = new Date(endDate);
+            apiEndDate.setHours(apiEndDate.getHours() + 3);
+
+            let page = 1;
+            let fetching = true;
+            let records = [];
+            let consecutiveErrors = 0;
+
+            while(fetching) {
+                try {
+                    // Respeita o cooldown global para não atrapalhar o uso principal
+                    if (Date.now() < apiCooldownUntil) { await delay(1000); continue; }
+                    while (Date.now() - lastApiCallTime < 5000) await delay(500);
+                    lastApiCallTime = Date.now();
+
+                    const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?startDate=${formatDateForAPI(startDate)}&endDate=${formatDateForAPI(apiEndDate)}&page=${page}`)}&_t=${Date.now()}`;
+                    const resp = await fetch(url);
+
+                    if (resp.status === 429) {
+                        apiCooldownUntil = Date.now() + 15000;
+                        await delay(5000 * (consecutiveErrors + 1));
+                        consecutiveErrors++;
+                        if (consecutiveErrors > 5) fetching = false;
+                        continue;
+                    }
+
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    
+                    const data = await resp.json();
+                    consecutiveErrors = 0;
+
+                    if (data && data.records) {
+                        const filtered = data.records.filter(r => {
+                            const d = new Date(r.created_at);
+                            return d >= startDate && d <= endDate;
+                        });
+                        records = [...records, ...filtered];
+
+                        const hasMore = data.totalPages ? page < data.totalPages : data.records.length >= 50;
+                        
+                        try {
+                            localStorage.setItem(storageKey, JSON.stringify({ records: records, page: page, complete: !hasMore }));
+                        } catch(e) {
+                            if (e.name === 'QuotaExceededError') {
+                                // Remove o cache mais antigo que não seja o atual nem o que estamos baixando
+                                try {
+                                    let keys = [];
+                                    for(let k=0; k<localStorage.length; k++) {
+                                        const key = localStorage.key(k);
+                                        if(key.startsWith('blaze_history_') && key !== storageKey) keys.push(key);
+                                    }
+                                    keys.sort(); // Remove o mais antigo (data menor)
+                                    if(keys.length > 0) localStorage.removeItem(keys[0]);
+                                    
+                                    localStorage.setItem(storageKey, JSON.stringify({ records: records, page: page, complete: !hasMore }));
+                                } catch(e2) {}
+                            }
+                        }
+
+                        if (!hasMore) fetching = false;
+                        else {
+                            page++;
+                            await delay(5000);
+                        }
+                    } else {
+                        fetching = false;
+                    }
+                } catch(e) {
+                    console.error(`Erro background ${storageKey}:`, e);
+                    fetching = false;
+                }
+            }
+        }
+
+        // Função encapsulada para carregar a sequência completa
+        async function loadFullHistorySequence() {
+            stopLoading = false;
+            const dateKey = currentStartDate.toISOString().split('T')[0];
+            const storageKey = 'blaze_history_' + dateKey;
+            let startPage = 1;
+            
+            try {
+                const cached = localStorage.getItem(storageKey);
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    // Aceita dados mesmo se não estiver completo (resume de onde parou)
+                    if (data.records && data.records.length > 0) {
+                        allRecords = data.records;
+                        currentPage = data.page || 1;
+                        buildAllRecordsTimeMap();
+                        resetHistoryStatsCache();
+                        renderResults(allRecords);
+                        updateComparisonSection();
+                        
+                        // Recalcula estatísticas se houver dados de hoje
+                        if (typeof todayRecords !== 'undefined' && todayRecords.length > 0) {
+                            calculateAdvancedStats(todayRecords);
+                            calculateHistoryStats(todayRecords);
+                        }
+
+                        const msg = document.createElement('div');
+                        msg.style.cssText = 'width:100%;text-align:center;color:#00ff88;font-size:0.8rem;margin-bottom:10px;padding:5px;background:rgba(0,255,136,0.1);border:1px solid #00ff88;border-radius:4px;';
+                        
+                        if (data.complete) {
+                            msg.innerHTML = '⚡ DADOS CARREGADOS DA MEMÓRIA (OFFLINE)';
+                            resultsContainer.insertBefore(msg, resultsContainer.firstChild);
+                            return;
+                        } else {
+                            // Se for parcial, define a próxima página para continuar
+                            msg.innerHTML = '⚡ RECUPERANDO DADOS SALVOS... CONTINUANDO...';
+                            resultsContainer.insertBefore(msg, resultsContainer.firstChild);
+                            startPage = currentPage + 1;
+                        }
+                    }
+                } else {
+                    resultsContainer.innerHTML = '<div class="loading">Iniciando busca na API...</div>';
+                }
+            } catch (e) { 
+                console.error('Erro ao ler cache:', e);
+                resultsContainer.innerHTML = '<div class="loading">Iniciando busca na API...</div>';
+            }
+            
+            loadMoreBtn.style.display = 'none';
+
+            let hasMore = await fetchHistory(startPage);
+            
+            // Carrega todo o histórico automaticamente
+            while (hasMore === true) {
+                if (stopLoading) {
+                    console.log("Carregamento interrompido pelo usuário.");
+                    break;
+                }
+
+                // Salva o progresso a cada página carregada
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify({ records: allRecords, page: currentPage, complete: false }));
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') clearOldCaches(dateKey);
+                }
+
+                await delay(5000); // Delay de 5 segundos conforme solicitado
+                hasMore = await fetchHistory(currentPage + 1);
+            }
+
+            if (hasMore !== null && !stopLoading) {
+                loadMoreBtn.style.display = 'none';
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify({ records: allRecords, page: currentPage, complete: true }));
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        clearOldCaches(dateKey);
+                        try { localStorage.setItem(storageKey, JSON.stringify({ records: allRecords, page: currentPage, complete: true })); } catch(e2){}
+                    }
+                }
+                updateComparisonSection();
+            }
+        }
+
+        resetWhiteStatsBtn.addEventListener('click', () => {
+            whiteWinCount = 0;
+            whiteLossCount = 0;
+            document.getElementById('white-win-count').textContent = '0';
+            document.getElementById('white-loss-count').textContent = '0';
+            localStorage.setItem('white_bot_stats', JSON.stringify({ win: 0, loss: 0 }));
+        });
+
+        resetStatsBtn.addEventListener('click', () => {
+            winCount = 0;
+            lossCount = 0;
+            document.getElementById('win-count').textContent = '0';
+            document.getElementById('loss-count').textContent = '0';
+            localStorage.setItem('bot_stats', JSON.stringify({ win: 0, loss: 0 }));
+            
+            resetHistoryStatsCache();
+            calculateHistoryStats(todayRecords);
+
+            // Limpar Histórico Lateral
+            localStorage.removeItem('bot_side_history');
+            const sideList = document.getElementById('side-history-list');
+            if(sideList) sideList.innerHTML = '';
+            const countEl = document.getElementById('side-total-count');
+            if(countEl) countEl.textContent = '0';
+        });
+
+        loadMoreBtn.addEventListener('click', () => fetchHistory(currentPage + 1));
+
+        // Evento do Botão de Buscar Data
+        document.getElementById('btnLoadDate').addEventListener('click', () => {
+            stopLoading = true; // Para qualquer loop anterior
+            setTimeout(() => {
+                initializeDates(); // Lê a nova data do input
+                allRecords = []; // Limpa registros
+                loadFullHistorySequence(); // Inicia nova busca
+            }, 100);
+        });
+
+        // Evento de mudança de data (Automático)
+        document.getElementById('historyDateInput').addEventListener('change', () => {
+            document.getElementById('btnLoadDate').click();
+        });
+
+        // Evento do Botão de Limpar Cache
+        document.getElementById('btnClearCache').addEventListener('click', () => {
+            const dateKey = currentStartDate.toISOString().split('T')[0];
+            const storageKey = 'blaze_history_' + dateKey;
+            localStorage.removeItem(storageKey);
+            alert('Memória limpa para a data: ' + dateKey);
+            // Recarrega
+            document.getElementById('btnLoadDate').click();
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializeDates();
+            loadBotState();
+            loadSideHistory();
+            initVirtualScroller();
+            
+            // Garantir que a UI e os eventos da Estratégia estejam sincronizados
+            if (strategySelector) {
+                strategySelector.value = botStrategy;
+                togglePatternOptions(botStrategy === 'pattern' || botStrategy === 'pattern_even_odd');
+                
+                strategySelector.addEventListener('change', (e) => {
+                    botStrategy = e.target.value;
+                    localStorage.setItem('bot_strategy', botStrategy);
+                    togglePatternOptions(botStrategy === 'pattern' || botStrategy === 'pattern_even_odd');
+                    updateComparisonSection();
+                    calculateAdvancedStats(todayRecords);
+                });
+            }
+            
+            // Inicia o histórico ao vivo
+            // Substituído setInterval por loop recursivo para melhor controle de taxa
+            (async function runLiveLoop() {
+                while (true) {
+                    await updateLiveHistory();
+                    
+                    // Delay dinâmico: aumenta se estiver em cooldown
+                    let nextWait = 5000;
+                    if (Date.now() < apiCooldownUntil) nextWait = 10000;
+                    
+                    await delay(nextWait);
+                }
+            })();
+            
+            loadTodayHistory(); // Inicia carregamento do histórico de hoje (Background)
+            
+            // Inicia o carregamento da sequência completa
+            loadFullHistorySequence();
+
+            // Inicia o pré-carregamento oculto dos últimos 20 dias
+            preloadLast20Days();
+        });
+    </script>
+</body>
+</html>
