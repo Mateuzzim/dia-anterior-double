@@ -503,11 +503,8 @@
 
         /* Side History Panel */
         #side-history-container {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 17%;
-            height: calc(100vh - 20px);
+            width: 18%;
+            height: auto;
             background: rgba(5, 5, 5, 0.9);
             border: 1px solid #333;
             border-left: 2px solid #f12c4c;
@@ -529,218 +526,238 @@
         .side-hist-result.win { color: #00ff88; }
         .side-hist-result.loss { color: #ff0044; }
 
-        /* Layout Adjustment */
-        .container > .live-section, .container > .dashboard-row { width: 81%; }
+        /* New Layout Wrapper */
+        .top-wrapper {
+            display: flex;
+            gap: 1%;
+            align-items: stretch;
+            margin-bottom: 30px;
+        }
+        .top-main-content {
+            width: 81%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        /* Reset margins inside wrapper as gap handles it */
+        .top-main-content > .live-section, 
+        .top-main-content > .dashboard-row { 
+            margin-bottom: 0; 
+            width: 100%;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="side-history-container">
-            <div class="side-panel-header">
-                <span>📜 Histórico Entradas</span>
-                <span id="side-total-count" style="font-size: 0.7rem; color: #888;">0</span>
-            </div>
-            <div id="side-history-list"></div>
-        </div>
-
-        <div class="live-section">
-            <h2 class="live-title">🔥 Dia Atual - Últimas 15</h2>
-            <div id="live-results" class="history-grid" style="margin-bottom: 0;"></div>
-        </div>
-
-        <div class="dashboard-row">
-            <div class="live-section" id="config-container">
-                <h2 class="live-title" style="color: #ccc; text-shadow: 0 0 5px rgba(255, 255, 255, 0.3); margin-bottom: 10px;">⚙️ Configurações</h2>
-                
-                <div style="margin-bottom: 15px;">
-                    <div class="config-label">Gale (Martingale)</div>
-                    <div class="gale-selector" id="gale-options">
-                        <div class="gale-option active" data-value="0">SEM</div>
-                        <div class="gale-option" data-value="1">G1</div>
-                        <div class="gale-option" data-value="2">G2</div>
-                        <div class="gale-option" data-value="3">G3</div>
-                        <div class="gale-option" data-value="4">G4</div>
-                    </div>
+        <div class="top-wrapper">
+            <div class="top-main-content">
+                <div class="live-section">
+                    <h2 class="live-title">🔥 Dia Atual - Últimas 15</h2>
+                    <div id="live-results" class="history-grid" style="margin-bottom: 0;"></div>
                 </div>
 
-                <div class="config-row">
-                    <div class="config-col">
-                        <div class="config-label">Estratégia</div>
-                        <select id="strategy-selector" class="compact-select">
-                            <option value="time">⏰ Temporal</option>
-                            <option value="pattern">🎨 Padrões Cores</option>
-                            <option value="pattern_even_odd">🔢 Padrões Par/Ímpar</option>
-                        </select>
-                    </div>
-                    <div class="config-col">
-                        <div class="config-label">Modo Gale</div>
-                        <select id="gale-mode-selector" class="compact-select">
-                            <option value="fixed">🔒 Fixo</option>
-                            <option value="dynamic">🔄 Dinâmico</option>
-                        </select>
-                    </div>
-                </div>
+                <div class="dashboard-row">
+                    <div class="live-section" id="config-container">
+                        <h2 class="live-title" style="color: #ccc; text-shadow: 0 0 5px rgba(255, 255, 255, 0.3); margin-bottom: 10px;">⚙️ Configurações</h2>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div class="config-label">Gale (Martingale)</div>
+                            <div class="gale-selector" id="gale-options">
+                                <div class="gale-option active" data-value="0">SEM</div>
+                                <div class="gale-option" data-value="1">G1</div>
+                                <div class="gale-option" data-value="2">G2</div>
+                                <div class="gale-option" data-value="3">G3</div>
+                                <div class="gale-option" data-value="4">G4</div>
+                            </div>
+                        </div>
 
-                <div id="pattern-length-container" style="display: none; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; margin-bottom: 10px;">
-                    <div class="config-label">Tamanho Padrão</div>
-                    <div class="gale-selector" id="pattern-length-options" style="margin-bottom: 10px;">
-                        <div class="gale-option" data-value="2">2</div>
-                        <div class="gale-option active" data-value="3">3</div>
-                        <div class="gale-option" data-value="4">4</div>
-                        <div class="gale-option" data-value="5">5</div>
-                        <div class="gale-option" data-value="6">6</div>
-                        <div class="gale-option" data-value="7">7</div>
-                        <div class="gale-option" data-value="8">8</div>
-                        <div class="gale-option" data-value="9">9</div>
-                        <div class="gale-option" data-value="10">10</div>
-                    </div>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="pattern-majority-mode" style="cursor: pointer; accent-color: #00f2ff;">
-                            <label for="pattern-majority-mode" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Maioria</label>
+                        <div class="config-row">
+                            <div class="config-col">
+                                <div class="config-label">Estratégia</div>
+                                <select id="strategy-selector" class="compact-select">
+                                    <option value="time">⏰ Temporal</option>
+                                    <option value="pattern">🎨 Padrões Cores</option>
+                                    <option value="pattern_even_odd">🔢 Padrões Par/Ímpar</option>
+                                </select>
+                            </div>
+                            <div class="config-col">
+                                <div class="config-label">Modo Gale</div>
+                                <select id="gale-mode-selector" class="compact-select">
+                                    <option value="fixed">🔒 Fixo</option>
+                                    <option value="dynamic">🔄 Dinâmico</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="pattern-minority-mode" style="cursor: pointer; accent-color: #00f2ff;">
-                            <label for="pattern-minority-mode" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Minoria</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="pattern-ignore-white" style="cursor: pointer; accent-color: #00f2ff;">
-                            <label for="pattern-ignore-white" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Ignorar ⚪</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="pattern-alternate-mode" style="cursor: pointer; accent-color: #00f2ff;">
-                            <label for="pattern-alternate-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Alternar M/m</label>
-                            <input type="number" id="pattern-alternate-count" value="2" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
-                            <span style="font-size: 0.7rem; color: #ccc;">Wins</span>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="pattern-alternate-loss-mode" style="cursor: pointer; accent-color: #ff0044;">
-                            <label for="pattern-alternate-loss-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Alternar M/m</label>
-                            <input type="number" id="pattern-alternate-loss-count" value="2" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
-                            <span style="font-size: 0.7rem; color: #ccc;">Loss</span>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="pattern-auto-resize-mode" style="cursor: pointer; accent-color: #00f2ff;">
-                            <label for="pattern-auto-resize-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Ciclar Tam.</label>
-                            <input type="number" id="pattern-auto-resize-count" value="3" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
-                            <span style="font-size: 0.7rem; color: #ccc;">Wins</span>
-                        </div>
-                    </div>
-                    
-                    <div id="even-odd-specific-options" style="display: none; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px;">
-                        <div class="config-label">Filtro de Padrão (Fixo)</div>
-                        <div class="gale-selector">
-                            <div id="btn-pattern-even" class="gale-option">Somente PAR</div>
-                            <div id="btn-pattern-odd" class="gale-option">Somente ÍMPAR</div>
-                        </div>
-                        <div class="gale-selector" style="margin-top: 10px;">
-                            <div id="btn-pattern-invert" class="gale-option invert-btn" style="width: 100%; text-align: center;">🔀 Inverter Entrada</div>
-                        </div>
-                    </div>
-                </div>
-                <button id="reset-stats-btn" class="reset-stats-btn" style="margin-top: 5px; padding: 6px;">🗑️ Resetar Placar</button>
-            </div>
 
-            <div class="live-section" id="bot-container">
-                <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
-                    <h2 class="live-title" style="margin-bottom: 0; color: #00f2ff; text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);">🤖 Bot Análise Temporal</h2>
-                </div>
-                
-                <div class="bot-content compact">
-                    <div class="bot-section-left">
-                        <div class="prediction-box" style="flex-direction: column; gap: 5px;">
-                            <span style="font-size: 0.8rem; color: #888;">ENTRADA SUGERIDA</span>
-                            <span id="bot-prediction" class="prediction-value">Analisando...</span>
+                        <div id="pattern-length-container" style="display: none; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                            <div class="config-label">Tamanho Padrão</div>
+                            <div class="gale-selector" id="pattern-length-options" style="margin-bottom: 10px;">
+                                <div class="gale-option" data-value="2">2</div>
+                                <div class="gale-option active" data-value="3">3</div>
+                                <div class="gale-option" data-value="4">4</div>
+                                <div class="gale-option" data-value="5">5</div>
+                                <div class="gale-option" data-value="6">6</div>
+                                <div class="gale-option" data-value="7">7</div>
+                                <div class="gale-option" data-value="8">8</div>
+                                <div class="gale-option" data-value="9">9</div>
+                                <div class="gale-option" data-value="10">10</div>
+                            </div>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pattern-majority-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                                    <label for="pattern-majority-mode" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Maioria</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pattern-minority-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                                    <label for="pattern-minority-mode" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Minoria</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pattern-ignore-white" style="cursor: pointer; accent-color: #00f2ff;">
+                                    <label for="pattern-ignore-white" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Ignorar ⚪</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pattern-alternate-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                                    <label for="pattern-alternate-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Alternar M/m</label>
+                                    <input type="number" id="pattern-alternate-count" value="2" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
+                                    <span style="font-size: 0.7rem; color: #ccc;">Wins</span>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pattern-alternate-loss-mode" style="cursor: pointer; accent-color: #ff0044;">
+                                    <label for="pattern-alternate-loss-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Alternar M/m</label>
+                                    <input type="number" id="pattern-alternate-loss-count" value="2" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
+                                    <span style="font-size: 0.7rem; color: #ccc;">Loss</span>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pattern-auto-resize-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                                    <label for="pattern-auto-resize-mode" style="color: #fff; font-size: 0.75rem; cursor: pointer; user-select: none; font-weight: bold;">Ciclar Tam.</label>
+                                    <input type="number" id="pattern-auto-resize-count" value="3" min="1" style="width: 35px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; text-align: center; font-size: 0.7rem; border-radius: 3px; margin-left: 5px;">
+                                    <span style="font-size: 0.7rem; color: #ccc;">Wins</span>
+                                </div>
+                            </div>
+                            
+                            <div id="even-odd-specific-options" style="display: none; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px;">
+                                <div class="config-label">Filtro de Padrão (Fixo)</div>
+                                <div class="gale-selector">
+                                    <div id="btn-pattern-even" class="gale-option">Somente PAR</div>
+                                    <div id="btn-pattern-odd" class="gale-option">Somente ÍMPAR</div>
+                                </div>
+                                <div class="gale-selector" style="margin-top: 10px;">
+                                    <div id="btn-pattern-invert" class="gale-option invert-btn" style="width: 100%; text-align: center;">🔀 Inverter Entrada</div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="gale-tree-container" style="display: none; margin-top: 8px; flex-direction: column; align-items: center;">
-                            <span style="font-size: 0.55rem; color: #666; margin-bottom: 3px; text-transform: uppercase;">Sequência Gale Dinâmico</span>
-                            <div id="gale-tree-steps" style="display: flex; justify-content: center;"></div>
-                        </div>
-                        <div style="text-align: center; font-size: 0.7rem; color: #666; margin-top: 5px;">PADRÃO IDENTIFICADO<div class="confidence-bar" style="width: 150px; height: 4px;"><div id="bot-confidence" class="confidence-fill"></div></div></div>
-                        <div id="pattern-count-display" style="font-size: 0.8rem; color: #00f2ff; margin-top: 5px; display: none; font-weight: bold; text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);"></div>
+                        <button id="reset-stats-btn" class="reset-stats-btn" style="margin-top: 5px; padding: 6px;">🗑️ Resetar Placar</button>
                     </div>
-                    
-                    <div class="bot-section-right">
-                        <div class="stats-row-compact">
-                            <span class="stats-label-compact">AO VIVO</span>
-                            <div class="stat-item stat-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="win-count">0</span></div>
-                            <div class="stat-item stat-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="loss-count">0</span></div>
-                        </div>
-                        <div class="stats-row-compact">
-                            <span class="stats-label-compact">HISTÓRICO</span>
-                            <div class="stat-item stat-history-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="hist-win-count">0</span></div>
-                            <div class="stat-item stat-history-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="hist-loss-count">0</span></div>
-                        </div>
-                    </div>
-                    <div class="gale-log-container">
-                        <div class="gale-log-title">Histórico de Gales</div>
-                        <div id="gale-logs" class="gale-logs"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="live-section" id="comparison-container" style="display: none;">
-            <h2 class="live-title">📅 Ontem - Mesmo Horário</h2>
-            <div id="comparison-results" class="history-grid" style="margin-bottom: 0;"></div>
-        </div>
-
-        <div class="dashboard-row" id="white-bot-row">
-            <div class="live-section" id="white-config-container">
-                <h2 class="live-title" style="color: #fff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">⚙️ Config Branco</h2>
-                <div style="margin-bottom: 10px;">
-                    <div class="config-label">Estratégia</div>
-                    <select id="white-strategy-selector" class="compact-select">
-                        <option value="proximity">📍 Proximidade (Padrão)</option>
-                        <option value="anticipate">⏮️ Antecipação</option>
-                    </select>
-                    <div id="white-anticipate-input-container" style="display: none; margin-top: 5px;">
-                        <div class="config-label" style="font-size: 0.65rem;">Distância (Pedras)</div>
-                        <div style="display: flex; gap: 5px; align-items: center;">
-                            <input type="number" id="white-anticipate-distance" class="compact-select" value="16" min="1" style="background: rgba(0,0,0,0.3); border: 1px solid #555; color: #fff; text-align: center; flex: 1;">
-                            <div class="checkbox-item" style="background: rgba(255, 0, 68, 0.1); border: 1px solid #ff0044; padding: 6px 8px; height: 100%;">
-                                <input type="checkbox" id="white-anticipate-invert" style="cursor: pointer; accent-color: #ff0044;">
-                                <label for="white-anticipate-invert" style="color: #ff0044; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none;">Inverter</label>
+                    <div class="live-section" id="bot-container">
+                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+                            <h2 class="live-title" style="margin-bottom: 0; color: #00f2ff; text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);">🤖 Bot Análise Temporal</h2>
+                        </div>
+                        
+                        <div class="bot-content compact">
+                            <div class="bot-section-left">
+                                <div class="prediction-box" style="flex-direction: column; gap: 5px;">
+                                    <span style="font-size: 0.8rem; color: #888;">ENTRADA SUGERIDA</span>
+                                    <span id="bot-prediction" class="prediction-value">Analisando...</span>
+                                </div>
+                                <div id="gale-tree-container" style="display: none; margin-top: 8px; flex-direction: column; align-items: center;">
+                                    <span style="font-size: 0.55rem; color: #666; margin-bottom: 3px; text-transform: uppercase;">Sequência Gale Dinâmico</span>
+                                    <div id="gale-tree-steps" style="display: flex; justify-content: center;"></div>
+                                </div>
+                                <div style="text-align: center; font-size: 0.7rem; color: #666; margin-top: 5px;">PADRÃO IDENTIFICADO<div class="confidence-bar" style="width: 150px; height: 4px;"><div id="bot-confidence" class="confidence-fill"></div></div></div>
+                                <div id="pattern-count-display" style="font-size: 0.8rem; color: #00f2ff; margin-top: 5px; display: none; font-weight: bold; text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);"></div>
+                            </div>
+                            
+                            <div class="bot-section-right">
+                                <div class="stats-row-compact">
+                                    <span class="stats-label-compact">AO VIVO</span>
+                                    <div class="stat-item stat-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="win-count">0</span></div>
+                                    <div class="stat-item stat-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="loss-count">0</span></div>
+                                </div>
+                                <div class="stats-row-compact">
+                                    <span class="stats-label-compact">HISTÓRICO</span>
+                                    <div class="stat-item stat-history-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="hist-win-count">0</span></div>
+                                    <div class="stat-item stat-history-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="hist-loss-count">0</span></div>
+                                </div>
+                            </div>
+                            <div class="gale-log-container">
+                                <div class="gale-log-title">Histórico de Gales</div>
+                                <div id="gale-logs" class="gale-logs"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div style="text-align: center; margin-bottom: 10px; color: #ccc; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Gale (Padrão 6)</div>
-                <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-                    <input type="number" id="white-gale-input" class="compact-select" value="6" min="0" max="100" style="background: rgba(0,0,0,0.3); border: 1px solid #555; color: #fff; text-align: center; width: 80px; font-weight: bold; font-size: 1rem;">
-                </div>
-                <div class="checkbox-item" style="background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; padding: 6px 8px; margin-bottom: 10px; justify-content: center;">
-                    <input type="checkbox" id="white-stop-on-win" style="cursor: pointer; accent-color: #00ff88;">
-                    <label for="white-stop-on-win" style="color: #00ff88; font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none;">⛔ Stop on Win (Sinal)</label>
-                </div>
-                <button id="reset-white-stats-btn" class="reset-stats-btn" style="border-color: #fff; color: #fff; background: rgba(255,255,255,0.1);">🗑️ Resetar Placar</button>
-            </div>
 
-            <div class="live-section" id="white-bot-container">
-                <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
-                    <h2 class="live-title" style="margin-bottom: 0; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">⚪ Bot Análise Branco</h2>
+                <div class="live-section" id="comparison-container" style="display: none;">
+                    <h2 class="live-title">📅 Ontem - Mesmo Horário</h2>
+                    <div id="comparison-results" class="history-grid" style="margin-bottom: 0;"></div>
                 </div>
-                <div class="bot-content compact">
-                    <div class="bot-section-left">
-                        <div class="prediction-box" style="flex-direction: column; gap: 5px;">
-                            <span style="font-size: 0.8rem; color: #888;">STATUS</span>
-                            <span id="white-bot-prediction" class="prediction-value">Aguardando...</span>
+
+                <div class="dashboard-row" id="white-bot-row">
+                    <div class="live-section" id="white-config-container">
+                        <h2 class="live-title" style="color: #fff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">⚙️ Config Branco</h2>
+                        <div style="margin-bottom: 10px;">
+                            <div class="config-label">Estratégia</div>
+                            <select id="white-strategy-selector" class="compact-select">
+                                <option value="proximity">📍 Proximidade (Padrão)</option>
+                                <option value="anticipate">⏮️ Antecipação</option>
+                            </select>
+                            <div id="white-anticipate-input-container" style="display: none; margin-top: 5px;">
+                                <div class="config-label" style="font-size: 0.65rem;">Distância (Pedras)</div>
+                                <div style="display: flex; gap: 5px; align-items: center;">
+                                    <input type="number" id="white-anticipate-distance" class="compact-select" value="16" min="1" style="background: rgba(0,0,0,0.3); border: 1px solid #555; color: #fff; text-align: center; flex: 1;">
+                                    <div class="checkbox-item" style="background: rgba(255, 0, 68, 0.1); border: 1px solid #ff0044; padding: 6px 8px; height: 100%;">
+                                        <input type="checkbox" id="white-anticipate-invert" style="cursor: pointer; accent-color: #ff0044;">
+                                        <label for="white-anticipate-invert" style="color: #ff0044; font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none;">Inverter</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div style="text-align: center; font-size: 0.7rem; color: #666; margin-top: 5px;">DISTÂNCIA NO HISTÓRICO: <span id="white-distance-display" style="color: #fff; font-weight: bold;">--</span></div>
+                        <div style="text-align: center; margin-bottom: 10px; color: #ccc; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Gale (Padrão 6)</div>
+                        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                            <input type="number" id="white-gale-input" class="compact-select" value="6" min="0" max="100" style="background: rgba(0,0,0,0.3); border: 1px solid #555; color: #fff; text-align: center; width: 80px; font-weight: bold; font-size: 1rem;">
+                        </div>
+                        <div class="checkbox-item" style="background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; padding: 6px 8px; margin-bottom: 10px; justify-content: center;">
+                            <input type="checkbox" id="white-stop-on-win" style="cursor: pointer; accent-color: #00ff88;">
+                            <label for="white-stop-on-win" style="color: #00ff88; font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none;">⛔ Stop on Win (Sinal)</label>
+                        </div>
+                        <button id="reset-white-stats-btn" class="reset-stats-btn" style="border-color: #fff; color: #fff; background: rgba(255,255,255,0.1);">🗑️ Resetar Placar</button>
                     </div>
-                    <div class="bot-section-right">
-                        <div class="stats-row-compact">
-                            <span class="stats-label-compact">AO VIVO</span>
-                            <div class="stat-item stat-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="white-win-count">0</span></div>
-                            <div class="stat-item stat-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="white-loss-count">0</span></div>
+
+                    <div class="live-section" id="white-bot-container">
+                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+                            <h2 class="live-title" style="margin-bottom: 0; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">⚪ Bot Análise Branco</h2>
                         </div>
-                        <div class="stats-row-compact">
-                            <span class="stats-label-compact">HISTÓRICO</span>
-                            <div class="stat-item stat-history-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="hist-white-win-count">0</span></div>
-                            <div class="stat-item stat-history-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="hist-white-loss-count">0</span></div>
+                        <div class="bot-content compact">
+                            <div class="bot-section-left">
+                                <div class="prediction-box" style="flex-direction: column; gap: 5px;">
+                                    <span style="font-size: 0.8rem; color: #888;">STATUS</span>
+                                    <span id="white-bot-prediction" class="prediction-value">Aguardando...</span>
+                                </div>
+                                <div style="text-align: center; font-size: 0.7rem; color: #666; margin-top: 5px;">DISTÂNCIA NO HISTÓRICO: <span id="white-distance-display" style="color: #fff; font-weight: bold;">--</span></div>
+                            </div>
+                            <div class="bot-section-right">
+                                <div class="stats-row-compact">
+                                    <span class="stats-label-compact">AO VIVO</span>
+                                    <div class="stat-item stat-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="white-win-count">0</span></div>
+                                    <div class="stat-item stat-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="white-loss-count">0</span></div>
+                                </div>
+                                <div class="stats-row-compact">
+                                    <span class="stats-label-compact">HISTÓRICO</span>
+                                    <div class="stat-item stat-history-win" style="font-size: 0.9rem; padding: 3px 10px;">WIN <span id="hist-white-win-count">0</span></div>
+                                    <div class="stat-item stat-history-loss" style="font-size: 0.9rem; padding: 3px 10px;">LOSS <span id="hist-white-loss-count">0</span></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div id="side-history-container">
+                <div class="side-panel-header">
+                    <span>📜 Histórico Entradas</span>
+                    <span id="side-total-count" style="font-size: 0.7rem; color: #888;">0</span>
+                </div>
+                <div id="side-history-list"></div>
             </div>
         </div>
 
@@ -1732,7 +1749,7 @@
 
                 item.innerHTML = `<div class="side-hist-info"><span class="side-hist-time">${time}</span><span class="side-hist-gale">${galeLabel}</span></div><div class="side-hist-result ${isWin ? 'win' : 'loss'}">${iconHtml}${result}</div>`;
                 sideList.prepend(item);
-                while (sideList.children.length > 40) {
+                while (sideList.children.length > 24) {
                     sideList.removeChild(sideList.lastChild);
                 }
                 const countEl = document.getElementById('side-total-count');
@@ -1763,7 +1780,7 @@
             
             if (sideList) {
                 sideList.innerHTML = '';
-                history.slice(0, 40).forEach(item => {
+                history.slice(0, 24).forEach(item => {
                     const div = document.createElement('div');
                     div.className = `side-hist-item ${item.isWin ? 'win' : 'loss'}`;
                     
