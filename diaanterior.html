@@ -589,6 +589,13 @@
                             </div>
                         </div>
 
+                <div class="checkbox-group" style="margin-bottom: 10px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="one-entry-per-minute-mode" style="cursor: pointer; accent-color: #00f2ff;">
+                        <label for="one-entry-per-minute-mode" style="color: #ccc; font-size: 0.75rem; cursor: pointer; user-select: none;">Por Minuto</label>
+                    </div>
+                </div>
+
                         <div id="pattern-length-container" style="display: none; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; margin-bottom: 10px;">
                             <div class="config-label">Tamanho Padrão</div>
                             <div class="gale-selector" id="pattern-length-options" style="margin-bottom: 10px;">
@@ -835,6 +842,8 @@
         let botPatternAutoResizeCount = 3;
         let winsSinceResize = 0;
         let currentBaseIndex = null;
+        let botOneEntryPerMinute = false;
+        let lastEntryMinute = null;
         let botPatternFixedEven = false;
         let botPatternFixedOdd = false;
         let botPatternEvenOddInvert = false;
@@ -967,6 +976,13 @@
                 botPatternAutoResizeCount = parseInt(savedAutoResizeCount);
                 const input = document.getElementById('pattern-auto-resize-count');
                 if (input) input.value = botPatternAutoResizeCount;
+            }
+
+            const savedOneEntry = localStorage.getItem('bot_one_entry_per_minute');
+            if (savedOneEntry !== null) {
+                botOneEntryPerMinute = savedOneEntry === 'true';
+                const cb = document.getElementById('one-entry-per-minute-mode');
+                if (cb) cb.checked = botOneEntryPerMinute;
             }
             
             const savedFixedEven = localStorage.getItem('bot_pattern_fixed_even');
@@ -1171,6 +1187,10 @@
                         await delay(1000);
                         continue;
                     }
+
+                    // Throttle global: Garante intervalo mínimo entre requisições pesadas
+                    while (Date.now() - lastApiCallTime < 2000) await delay(100);
+                    lastApiCallTime = Date.now();
 
                     if (!isLoadMore) {
                         if (attempts === 0) resultsContainer.innerHTML = '<div class="loading">Carregando histórico...</div>';
@@ -1384,7 +1404,7 @@
                 if (Date.now() < apiCooldownUntil) return;
 
                 // Throttle global
-                while (Date.now() - lastApiCallTime < 2000) await delay(100);
+                while (Date.now() - lastApiCallTime < 5000) await delay(100);
                 lastApiCallTime = Date.now();
 
                 const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?page=1`)}&_t=${Date.now()}`;
@@ -1883,6 +1903,12 @@
                 // Se já existe uma previsão ativa (estamos em Gale), não muda a entrada
                 if (currentBotPrediction !== null) return;
                 
+                if (botOneEntryPerMinute) {
+                    const refTime = lastLiveTime || new Date();
+                    const minuteKey = `${refTime.getHours()}:${refTime.getMinutes()}`;
+                    if (minuteKey === lastEntryMinute) return;
+                }
+
                 if (botStrategy === 'pattern' || botStrategy === 'pattern_even_odd') {
                     // Estratégia de Padrões Dinâmicos
                     if (currentLiveRecords && currentLiveRecords.length >= botPatternLength) {
@@ -2059,6 +2085,12 @@
                     botPrediction.textContent = colorText;
                     botPrediction.className = `prediction-value ${colorClass}`;
                     currentBotPrediction = predColorCode;
+
+                    if (botOneEntryPerMinute) {
+                        const refTime = lastLiveTime || new Date();
+                        lastEntryMinute = `${refTime.getHours()}:${refTime.getMinutes()}`;
+                    }
+
                     currentGaleSequence = [{gale: 0, color: predColorCode}];
                     botContainer.style.display = 'block';
                     renderGaleTree(currentBaseIndex);
@@ -2548,6 +2580,14 @@
             });
         }
 
+        const oneEntryCb = document.getElementById('one-entry-per-minute-mode');
+        if (oneEntryCb) {
+            oneEntryCb.addEventListener('change', (e) => {
+                botOneEntryPerMinute = e.target.checked;
+                localStorage.setItem('bot_one_entry_per_minute', botOneEntryPerMinute);
+            });
+        }
+
         const patternMinorityCb = document.getElementById('pattern-minority-mode');
         if (patternMinorityCb) {
             patternMinorityCb.addEventListener('change', (e) => {
@@ -2928,7 +2968,7 @@
                     await updateLiveHistory();
                     
                     // Delay dinâmico: aumenta se estiver em cooldown
-                    let nextWait = 5000;
+                    let nextWait = 7000;
                     if (Date.now() < apiCooldownUntil) nextWait = 10000;
                     
                     await delay(nextWait);
