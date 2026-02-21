@@ -810,6 +810,17 @@
         let lastComparisonCenterId = null; // Controle para otimização de renderização
         let lastProcessedLiveIdForBot = null; // Controle para otimização do bot
         
+        // Função centralizada de Throttle para evitar Erro 429
+        async function waitForThrottle() {
+            while (Date.now() < apiCooldownUntil) {
+                await delay(1000);
+            }
+            while (Date.now() - lastApiCallTime < 3000) { // 3 segundos de intervalo mínimo
+                await delay(200);
+            }
+            lastApiCallTime = Date.now();
+        }
+
         // Variáveis Bot Branco
         let whiteMaxGale = 6;
         let whiteWinCount = 0;
@@ -1100,18 +1111,10 @@
 
             while(fetching) {
                 try {
-                    // Respeitar cooldown global se houver bloqueio
-                    if (Date.now() < apiCooldownUntil) {
-                        await delay(1000);
-                        continue;
-                    }
-
+                    await waitForThrottle();
+                    
                     const apiEndDate = new Date();
                     apiEndDate.setHours(apiEndDate.getHours() + 1); // Garante pegar até o último segundo
-
-                    // Throttle global para evitar conflito com o live
-                    while (Date.now() - lastApiCallTime < 5000) await delay(500);
-                    lastApiCallTime = Date.now();
 
                     const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?startDate=${formatDateForAPI(todayStart)}&endDate=${formatDateForAPI(apiEndDate)}&page=${page}`)}&_t=${Date.now()}`;
                     const resp = await fetch(url);
@@ -1181,16 +1184,11 @@
 
             while (attempts < maxAttempts) {
                 try {
-                    // Respeitar cooldown global
-                    if (Date.now() < apiCooldownUntil) {
-                        if (!isLoadMore && attempts === 0) resultsContainer.innerHTML = '<div class="loading">Aguardando API (Cooldown)...</div>';
-                        await delay(1000);
-                        continue;
+                    if (!isLoadMore && attempts === 0 && Date.now() < apiCooldownUntil) {
+                        resultsContainer.innerHTML = '<div class="loading">Aguardando API (Cooldown)...</div>';
                     }
-
-                    // Throttle global: Garante intervalo mínimo entre requisições pesadas
-                    while (Date.now() - lastApiCallTime < 2000) await delay(100);
-                    lastApiCallTime = Date.now();
+                    
+                    await waitForThrottle();
 
                     if (!isLoadMore) {
                         if (attempts === 0) resultsContainer.innerHTML = '<div class="loading">Carregando histórico...</div>';
@@ -1400,12 +1398,7 @@
 
         async function updateLiveHistory() {
             try {
-                // Se estiver em cooldown (bloqueio 429), não faz requisição
-                if (Date.now() < apiCooldownUntil) return;
-
-                // Throttle global
-                while (Date.now() - lastApiCallTime < 5000) await delay(100);
-                lastApiCallTime = Date.now();
+                await waitForThrottle();
 
                 const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?page=1`)}&_t=${Date.now()}`;
                 const response = await fetch(url);
@@ -2740,10 +2733,7 @@
 
             while(fetching) {
                 try {
-                    // Respeita o cooldown global para não atrapalhar o uso principal
-                    if (Date.now() < apiCooldownUntil) { await delay(1000); continue; }
-                    while (Date.now() - lastApiCallTime < 5000) await delay(500);
-                    lastApiCallTime = Date.now();
+                    await waitForThrottle();
 
                     const url = `https://corsproxy.io/?${encodeURIComponent(`${API_BASE}?startDate=${formatDateForAPI(startDate)}&endDate=${formatDateForAPI(apiEndDate)}&page=${page}`)}&_t=${Date.now()}`;
                     const resp = await fetch(url);
@@ -2962,26 +2952,27 @@
             }
             
             // Inicia o histórico ao vivo
-            // Substituído setInterval por loop recursivo para melhor controle de taxa
             (async function runLiveLoop() {
                 while (true) {
                     await updateLiveHistory();
                     
-                    // Delay dinâmico: aumenta se estiver em cooldown
-                    let nextWait = 7000;
-                    if (Date.now() < apiCooldownUntil) nextWait = 10000;
-                    
-                    await delay(nextWait);
+                    // Atualiza a cada 10 segundos
+                    await delay(10000);
                 }
             })();
-            
-            loadTodayHistory(); // Inicia carregamento do histórico de hoje (Background)
             
             // Inicia o carregamento da sequência completa
             loadFullHistorySequence();
 
-            // Inicia o pré-carregamento oculto dos últimos 20 dias
-            preloadLast20Days();
+            // Inicia carregamento do histórico de hoje (Background) com atraso
+            setTimeout(() => {
+                loadTodayHistory();
+            }, 3000);
+
+            // Inicia o pré-carregamento oculto dos últimos 20 dias com atraso maior
+            setTimeout(() => {
+                preloadLast20Days();
+            }, 15000);
         });
     </script>
 </body>
